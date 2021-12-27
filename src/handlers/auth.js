@@ -43,7 +43,8 @@ const setParam = (param, value, type = "String") => {
     const data = {
         Name: param,
         Value: value,
-        Type: type
+        Type: type,
+        Overwrite: true
     };
 
     return new Promise((r, x) => {
