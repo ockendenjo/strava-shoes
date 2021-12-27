@@ -28,7 +28,6 @@ const getParams = () => {
             if (err) {
                 x(err);
             } else {
-                console.log(data);
                 const map = data.Parameters.reduce((acc, val) => {
                     const key = val.Name.replace("/strava/", "");
                     acc[key] = val.Value;
@@ -59,9 +58,8 @@ const setParam = (param, value, type = "String") => {
 };
 
 exports.handler = async(event) => {
-    console.log(event);
-
     if (!event.queryStringParameters.code) {
+        console.error("No 'code' parameter in query string parameters");
         return http401;
     }
 
@@ -70,6 +68,7 @@ exports.handler = async(event) => {
         params = await getParams();
         console.log(params);
     } catch (e) {
+        console.error(e);
         return http401;
     }
 
@@ -85,7 +84,7 @@ exports.handler = async(event) => {
     try {
         res = await makeRequest(url, {});
     } catch (e) {
-        console.error("Get token failed");
+        console.error("Get token failed", e);
         return http401;
     }
 
