@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  strava-shoes
+
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  ClientId:
+    Type: Number
+    Description: "Strava app client ID"
+    Default: "0"
+  ClientSecret:
+    Type: String
+    Description: "Strava app client secret"
+    NoEcho: true
+    Default: ""
+  AthleteId:
+    Type: Number
+    Description: "Strava athlete ID"
+    Default: "0"
+
+Resources:
+  ShoeCheckFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A Lambda function that checks the shoes assigned to Strava activities
+      Runtime: nodejs14.x
+      Handler: src/handlers/check.handler
+      Events:
+        CloudWatchEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 18 * * ? *)
+      MemorySize: 128
+      Timeout: 5000
+
+  StravaAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A Lambda function that handles Strava auth callback
+      Runtime: nodejs14.x
+      Handler: src/handlers/auth.handler
+      MemorySize: 128
+      Timeout: 5000
+
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "Strava shoes notification topic"
+      FifoTopic: false
+      TopicName: "strava-shoes-topic"
