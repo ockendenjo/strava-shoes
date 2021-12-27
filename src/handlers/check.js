@@ -68,10 +68,9 @@ const publishSns = (params) => {
 
 exports.handler = async(event) => {
 
-    let params;
+    let ssmParams;
     try {
-        params = await getParams();
-        console.log(params);
+        ssmParams = await getParams();
     } catch (e) {
         console.error(e);
         return false;
@@ -79,10 +78,10 @@ exports.handler = async(event) => {
 
     // //Refresh access token
     const data = {
-        client_id: params.clientId,
-        client_secret: params.clientSecret,
+        client_id: ssmParams.clientId,
+        client_secret: ssmParams.clientSecret,
         grant_type: "refresh_token",
-        refresh_token: params.refreshToken,
+        refresh_token: ssmParams.refreshToken,
     };
     const url = "https://www.strava.com/oauth/token?" + new URLSearchParams(data);
 
@@ -97,12 +96,12 @@ exports.handler = async(event) => {
     await setParam("/strava/refreshToken", res.refresh_token, "SecureString");
     await setParam("/strava/accessToken", res.access_token, "SecureString");
 
-    params.refreshToken = res.refresh_token;
-    params.accessToken = res.access_token;
+    ssmParams.refreshToken = res.refresh_token;
+    ssmParams.accessToken = res.access_token;
 
     //Load activities
     try {
-        const headers = {Authorization: `Bearer ${params.accessToken}`};
+        const headers = {Authorization: `Bearer ${ssmParams.accessToken}`};
         res = await makeRequest("https://www.strava.com/api/v3/athlete/activities", {}, "GET", headers);
     } catch (e) {
         return false;
@@ -128,8 +127,10 @@ exports.handler = async(event) => {
         const params = {
             Message,
             Subject: "Strava activities with missing footwear",
-            TopicArn: "arn:aws:sns:eu-west-1:574363388371:strava"
+            TopicArn: ssmParams.topicId
         };
         await publishSns(params);
+    } else {
+        console.info("No missing footwear");
     }
 };
