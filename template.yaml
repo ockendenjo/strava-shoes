@@ -18,6 +18,10 @@ Parameters:
     Type: Number
     Description: "Strava athlete ID"
     Default: "0"
+  GearIds:
+    Type: String
+    Description: "Stringified JSON of gear IDs to warn about"
+    Default: '["g9558316"]'
 
 Resources:
   ShoeCheckFunction:
@@ -105,6 +109,15 @@ Resources:
     Properties:
       Name: "/strava/refreshToken"
       Value: "placeholder"
+      Type: String
+      Tier: "Standard"
+      DataType: "text"
+
+  GearIdsParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/strava/gearIds"
+      Value: !Ref GearIds
       Type: String
       Tier: "Standard"
       DataType: "text"

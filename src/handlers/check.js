@@ -108,7 +108,7 @@ exports.handler = async(event) => {
     }
 
     const types = ["Run", "Hike", "Walk"];
-    const badShoes = ["g9558316"];
+    const badShoes = JSON.parse(ssmParams.gearIds);
 
     const needFixing = res.filter((act) => {
         if (!types.includes(act.type)) {
