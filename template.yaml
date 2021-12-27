@@ -32,7 +32,7 @@ Resources:
           Properties:
             Schedule: cron(0 18 * * ? *)
       MemorySize: 128
-      Timeout: 5000
+      Timeout: 5
 
   StravaAuthFunction:
     Type: AWS::Serverless::Function
@@ -41,7 +41,7 @@ Resources:
       Runtime: nodejs14.x
       Handler: src/handlers/auth.handler
       MemorySize: 128
-      Timeout: 5000
+      Timeout: 5
 
   NotificationTopic:
     Type: AWS::SNS::Topic
