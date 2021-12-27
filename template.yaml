@@ -34,6 +34,11 @@ Resources:
       MemorySize: 128
       Timeout: 5
 
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+
   StravaAuthFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -42,6 +47,13 @@ Resources:
       Handler: src/handlers/auth.handler
       MemorySize: 128
       Timeout: 5
+      Events:
+        HttpApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Method: GET
+            Path: /auth
 
   NotificationTopic:
     Type: AWS::SNS::Topic
@@ -49,3 +61,71 @@ Resources:
       DisplayName: "Strava shoes notification topic"
       FifoTopic: false
       TopicName: "strava-shoes-topic"
+
+  TopicParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/strava/topicId"
+      Value: !Ref NotificationTopic
+      Type: String
+      Tier: "Standard"
+      DataType: "text"
+
+  ClientIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/strava/clientId"
+      Value: !Ref ClientId
+      Type: String
+      Tier: "Standard"
+      DataType: "text"
+
+  ClientSecretParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/strava/clientSecret"
+      Value: !Ref ClientSecret
+      Type: String
+      Tier: "Standard"
+      DataType: "text"
+
+  AccessTokenParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/strava/accessToken"
+      Value: "placeholder"
+      Type: String
+      Tier: "Standard"
+      DataType: "text"
+
+  RefreshTokenParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/strava/refreshToken"
+      Value: "placeholder"
+      Type: String
+      Tier: "Standard"
+      DataType: "text"
+
+Outputs:
+  AuthCallbackDomain:
+    Description: Authorization callback domain (set in Strava app)
+    Value:
+      Fn::Join:
+        - ''
+        - - Ref: HttpApi
+          - .execute-api.
+          - Ref: AWS::Region
+          - .amazonaws.com
+  StravaAuthUrl:
+    Description: URL to visit to authenticate
+    Value:
+      Fn::Join:
+        - ''
+        - - https://www.strava.com/oauth/authorize?client_id=
+          - Ref: ClientId
+          - '&response_type=code&redirect_uri=https://'
+          - Ref: HttpApi
+          - .execute-api.
+          - Ref: AWS::Region
+          - .amazonaws.com/auth&scope=activity:read
