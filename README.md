@@ -4,7 +4,7 @@ This project contains source code for an AWS serverless application for checking
 
 ## Longer intro
 
-This project contains a Serverless Application Model (SAM) stack which configures a number of lambda functions. One lambda
+This project contains a CDK stack which configures a number of lambda functions. One lambda
 function is used to handle the authorization response from strava. The other lambda function is run on a schedule
 (via CloudWatch events) and queries the Strava API to check the gear assigned to activities.
 
@@ -21,17 +21,16 @@ Use `example.com` as the **Authorization Callback Domain** for now.
 To build and deploy your application for the first time, run the following in your shell:
 
 ```bash
-sam build
-sam deploy --guided
+ cdk bootstrap
+ cdk deploy --parameters "clientId=<clientId>" --parameters "clientSecret=<clientSecret>"
 ```
 
 The first command will build the source of your application. The second command will package and deploy your application to AWS, with a series of prompts:
 
-* **Stack Name**: The name of the stack to deploy to CloudFormation. This should be unique to your account and region, and a good starting point would be something matching your project name.
+
 * **AWS Region**: The AWS region you want to deploy your app to.
 * **ClientId**: Strava App client ID (from the app details on Strava)
 * **ClientSecret**: Strava App client secret (from the app details on Strava)
-* **AthleteId**: Your strava athlete ID
 * **GearIds**: Any gear which should trigger a notification - e.g. `["g1234", null]`
 
 Note: The ClientSecret would be better stored as a `SecureString` parameter in systems manager, but CloudFormation doesn't
@@ -49,9 +48,5 @@ The stack produces two outputs:
 To delete the sample application that you created, use the AWS CLI. Assuming you used your project name for the stack name, you can run the following:
 
 ```bash
-sam delete
-```
-or
-```bash
-aws cloudformation delete-stack --stack-name strava-shoes
+cdk destroy
 ```
