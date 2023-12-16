@@ -7,5 +7,11 @@ clean:
 format:
 	npx prettier --write .
 
-deploy:
-	cdk deploy --parameters "clientId=75750" ""
+deploy: build
+	cdk deploy --stackName "StravaShoesStack" --parameters "clientId=75750"
+
+build:
+	echo "build"
+
+synth: build
+	cdk synth
