@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsevents"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awscloudwatch"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
 	lambda "github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awss3"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awssns"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
@@ -22,8 +21,6 @@ type LambdaBuilder struct {
 	functionName string
 	env          map[string]*string
 	role         awsiam.Role
-	timeout      *awscdk.Duration
-	layers       *[]lambda.ILayerVersion
 }
 
 func NewLambda(stack awscdk.Stack, id string, codePath string) *LambdaBuilder {
@@ -48,27 +45,30 @@ func NewLambda(stack awscdk.Stack, id string, codePath string) *LambdaBuilder {
 		scope:        construct,
 		id:           id,
 		codePath:     codePath,
-		functionName: "OSMValidator_" + id,
+		functionName: "Strava_" + id,
 		env:          map[string]*string{},
 		role:         role,
 	}
 }
 
-func (lb *LambdaBuilder) WithS3Read(bucket awss3.Bucket, bucketNameEnvKey string) *LambdaBuilder {
-	bucket.GrantRead(lb.role, nil)
-	lb.env[bucketNameEnvKey] = bucket.BucketName()
-	return lb
-}
-
-func (lb *LambdaBuilder) WithS3Write(bucket awss3.Bucket, bucketNameEnvKey string) *LambdaBuilder {
-	bucket.GrantWrite(lb.role, nil, nil)
-	lb.env[bucketNameEnvKey] = bucket.BucketName()
-	return lb
-}
-
 func (lb *LambdaBuilder) WithTopicPublish(topic awssns.Topic, topicArnEnvKey string) *LambdaBuilder {
 	topic.GrantPublish(lb.role)
 	lb.env[topicArnEnvKey] = topic.TopicArn()
+	return lb
+}
+
+func (lb *LambdaBuilder) WithParamsAccess() *LambdaBuilder {
+	stack := lb.role.Stack()
+
+	lb.role.AddToPolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
+		Sid:     jsii.String("AllowSSM"),
+		Effect:  awsiam.Effect_ALLOW,
+		Actions: jsii.Strings("ssm:PutParameter", "ssm:GetParameters", "ssm:GetParametersByPath", "ssm:DescribeParameters"),
+		Resources: jsii.Strings(
+			fmt.Sprintf("arn:aws:ssm:%s:%s:parameter/strava*", *stack.Region(), *stack.Account()),
+		),
+	}))
+
 	return lb
 }
 
@@ -91,37 +91,25 @@ func (lb *LambdaBuilder) WithEnvVar(envValue string, envKey string) *LambdaBuild
 func (lb *LambdaBuilder) Build() *LambdaConstruct {
 
 	lambdaFn := lambda.NewFunction(lb.scope, jsii.String("function"), &lambda.FunctionProps{
-		Runtime:                      lambda.Runtime_PROVIDED_AL2(),
-		Architecture:                 lambda.Architecture_ARM_64(),
-		Handler:                      jsii.String("function"),
-		Role:                         lb.role,
-		Code:                         lambda.Code_FromAsset(jsii.String(lb.codePath), nil),
-		FunctionName:                 jsii.String(lb.functionName),
-		Environment:                  &lb.env,
-		Layers:                       lb.layers,
-		Tracing:                      lambda.Tracing_ACTIVE,
-		Timeout:                      awscdk.Duration_Seconds(jsii.Number(8)),
-		MemorySize:                   jsii.Number(1024),
-		ReservedConcurrentExecutions: jsii.Number(2),
-	})
-
-	awscloudwatch.NewAlarm(lb.scope, jsii.String("Alarm"), &awscloudwatch.AlarmProps{
-		Metric: awscloudwatch.NewMetric(&awscloudwatch.MetricProps{
-			MetricName: jsii.String("Errors"),
-			Namespace:  jsii.String("AWS/Lambda"),
-			DimensionsMap: &map[string]*string{
-				"FunctionName": jsii.String(lb.functionName),
-			},
-			Statistic: jsii.String("Sum"),
-			Period:    awscdk.Duration_Minutes(jsii.Number(1)),
-		}),
-		AlarmName:          jsii.String("FunctionErrors__" + lb.functionName),
-		AlarmDescription:   jsii.String("Goes into ALARM state when lambda function returns an error."),
-		EvaluationPeriods:  jsii.Number(1),
-		Threshold:          jsii.Number(1),
-		ComparisonOperator: awscloudwatch.ComparisonOperator_GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-		TreatMissingData:   awscloudwatch.TreatMissingData_NOT_BREACHING,
+		Runtime:      lambda.Runtime_PROVIDED_AL2023(),
+		Architecture: lambda.Architecture_ARM_64(),
+		Handler:      jsii.String("function"),
+		Role:         lb.role,
+		Code:         lambda.Code_FromAsset(jsii.String(lb.codePath), nil),
+		FunctionName: jsii.String(lb.functionName),
+		Environment:  &lb.env,
+		Timeout:      awscdk.Duration_Seconds(jsii.Number(10)),
+		MemorySize:   jsii.Number(256),
+		Tracing:      lambda.Tracing_ACTIVE,
 	})
 
 	return &LambdaConstruct{LambdaFn: lambdaFn, Construct: lb.scope}
+}
+
+func DailyAtTime(hour int, minutes int) awsevents.Schedule {
+	return awsevents.Schedule_Cron(&awsevents.CronOptions{
+		Day:    jsii.String("*"),
+		Hour:   jsii.String(fmt.Sprintf("%d", hour)),
+		Minute: jsii.String(fmt.Sprintf("%d", minutes)),
+	})
 }

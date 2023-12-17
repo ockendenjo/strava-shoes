@@ -5,11 +5,7 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigatewayv2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigatewayv2integrations"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awsevents"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awseventstargets"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awslambdanodejs"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awssns"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsssm"
 	"github.com/aws/constructs-go/constructs/v10"
@@ -44,7 +40,7 @@ func NewStack(scope constructs.Construct, id string, props *StackProps) awscdk.S
 	gearIds := awscdk.NewCfnParameter(stack, jsii.String("GearIds"), &awscdk.CfnParameterProps{
 		Type:        jsii.String("String"),
 		Description: jsii.String("Stringified JSON of gear IDs to warn about"),
-		Default:     `["g9558316"]`,
+		Default:     `["g9558316", ""]`,
 	})
 
 	role := awsiam.NewRole(stack, jsii.String("LambdaRole"), &awsiam.RoleProps{
@@ -67,39 +63,16 @@ func NewStack(scope constructs.Construct, id string, props *StackProps) awscdk.S
 	topic := awssns.NewTopic(stack, jsii.String("Topic"), nil)
 	topic.GrantPublish(role)
 
-	checkLambda := awslambdanodejs.NewNodejsFunction(stack, jsii.String("ShoesCheckLambda"), &awslambdanodejs.NodejsFunctionProps{
-		Role:       role,
-		Runtime:    awslambda.Runtime_NODEJS_18_X(),
-		Entry:      jsii.String("lib/check-lambda.function.ts"),
-		MemorySize: jsii.Number(128),
-		Timeout:    awscdk.Duration_Seconds(jsii.Number(5)),
-		Environment: &map[string]*string{
-			"TOPIC_ARN": topic.TopicArn(),
-			"GEAR_IDS":  gearIds.ValueAsString(),
-		},
-	})
+	NewLambda(stack, "GearCheckLambda", "build/check").
+		WithParamsAccess().
+		WithEnvVar(*gearIds.ValueAsString(), "GEAR_IDS").
+		WithTopicPublish(topic, "TOPIC_ARN").
+		Build().RunAtFixedRate(DailyAtTime(18, 0))
 
-	awsevents.NewRule(stack, jsii.String("CheckRule"), &awsevents.RuleProps{
-		Schedule: awsevents.Schedule_Cron(&awsevents.CronOptions{
-			Minute: jsii.String("*"),
-			Hour:   jsii.String("18"),
-		}),
-		Targets: &[]awsevents.IRuleTarget{
-			awseventstargets.NewLambdaFunction(checkLambda, &awseventstargets.LambdaFunctionProps{
-				MaxEventAge:   awscdk.Duration_Minutes(jsii.Number(1)),
-				RetryAttempts: jsii.Number(1),
-			}),
-		},
-	})
-
-	authLambda := awslambdanodejs.NewNodejsFunction(stack, jsii.String("AuthLambda"), &awslambdanodejs.NodejsFunctionProps{
-		Role:       role,
-		Runtime:    awslambda.Runtime_NODEJS_18_X(),
-		Entry:      jsii.String("lib/auth-lambda.function.ts"),
-		MemorySize: jsii.Number(128),
-		Timeout:    awscdk.Duration_Seconds(jsii.Number(5)),
-	})
-	authIntegration := awsapigatewayv2integrations.NewHttpLambdaIntegration(jsii.String("AuthIntegration"), authLambda, nil)
+	authLambda := NewLambda(stack, "AuthLambda", "build/auth").
+		WithParamsAccess().
+		Build()
+	authIntegration := awsapigatewayv2integrations.NewHttpLambdaIntegration(jsii.String("AuthIntegration"), authLambda.LambdaFn, nil)
 	httpApi.AddRoutes(&awsapigatewayv2.AddRoutesOptions{
 		Path:        jsii.String("/auth"),
 		Methods:     &[]awsapigatewayv2.HttpMethod{awsapigatewayv2.HttpMethod_GET},
@@ -137,7 +110,7 @@ func NewStack(scope constructs.Construct, id string, props *StackProps) awscdk.S
 
 	awscdk.NewCfnOutput(stack, jsii.String("StravaAuthUrl"), &awscdk.CfnOutputProps{
 		ExportName: jsii.String("StravaAuthUrl"),
-		Value:      jsii.String(fmt.Sprintf("https://www.strava.com/oauth/authorize?client_id=%s&response_type=code&redirect_uri=%sauth&scope=activity:read", *clientId.ValueAsString(), *httpApi.Url())),
+		Value:      jsii.String(fmt.Sprintf("https://www.strava.com/oauth/authorize?client_id=%s&response_type=code&scope=activity:read&redirect_uri=%sauth", *clientId.ValueAsString(), *httpApi.Url())),
 	})
 
 	return stack
