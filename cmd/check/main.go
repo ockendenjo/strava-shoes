@@ -4,17 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"slices"
+	"strings"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/ockendenjo/strava/pkg/handler"
+	"github.com/ockendenjo/handler"
 	"github.com/ockendenjo/strava/pkg/strava"
-	"net/http"
-	"slices"
-	"strings"
-	"time"
 )
 
 func main() {

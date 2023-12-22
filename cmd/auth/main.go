@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
+	"net/http"
+	"time"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-xray-sdk-go/xray"
-	"github.com/ockendenjo/strava/pkg/handler"
+	"github.com/ockendenjo/handler"
 	"github.com/ockendenjo/strava/pkg/strava"
-	"net/http"
-	"time"
 )
 
 type apiHandler = handler.Handler[events.APIGatewayV2HTTPRequest, events.APIGatewayV2HTTPResponse]
