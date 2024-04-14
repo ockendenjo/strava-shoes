@@ -48,7 +48,7 @@ func getHandler(stravaClient *strava.Client, snsClient *sns.Client, gearIds []st
 		}
 
 		var messages []string
-		sportTypes := []string{"Run", "Hike", "Walk"}
+		sportTypes := []string{"Run", "Hike", "Walk", "Ride"}
 		isGearOk := getCheckFn(sportTypes, gearIds)
 
 		for _, activity := range activities {
