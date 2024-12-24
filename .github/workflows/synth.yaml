@@ -1,0 +1,23 @@
+on:
+  workflow_call: {}
+
+jobs:
+  synth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install CDK
+        run: |
+          npm install -g aws-cdk
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build
+
+      - name: synth
+        shell: bash
+        run: |
+          cdk synth --no-color

@@ -5,9 +5,11 @@ on:
 
 jobs:
   test:
-    name: test
     uses: ./.github/workflows/test.yaml
 
   build:
-    name: build
     uses: ./.github/workflows/build.yaml
+
+  synth:
+    needs: [build]
+    uses: ./.github/workflows/synth.yaml
