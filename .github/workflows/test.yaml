@@ -1,0 +1,22 @@
+on:
+  workflow_call: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Set up tparse
+        run: go install github.com/mfridman/tparse@latest
+
+      - name: Run tests
+        shell: bash
+        run: |
+          set -o pipefail && go test $(go list ./... | grep -v /pittests) -json | tparse
