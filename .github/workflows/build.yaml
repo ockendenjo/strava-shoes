@@ -1,0 +1,32 @@
+on:
+  workflow_call:
+    inputs:
+      keep_artifact:
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Download Go packages
+        shell: bash
+        run: |
+          go get ./...
+
+      - name: Upload artifact
+        if: ${{ inputs.keep_artifact }}
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          path: app/resources/build
+          name: build
+          retention-days: 1
