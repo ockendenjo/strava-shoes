@@ -3,6 +3,9 @@ on:
 
 jobs:
   deploy:
+    concurrency:
+      group: main
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code

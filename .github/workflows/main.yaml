@@ -7,14 +7,11 @@ on:
 
 jobs:
   test:
-    name: test
     uses: ./.github/workflows/test.yaml
 
   build:
-    name: build
     uses: ./.github/workflows/build.yaml
 
   deploy:
-    name: deploy
     needs: [build]
     uses: ./.github/workflows/deploy.yaml
