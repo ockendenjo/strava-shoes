@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigatewayv2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigatewayv2integrations"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awssns"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsssm"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"strings"
 )
 
 type StackProps struct {
@@ -35,6 +37,15 @@ func NewStack(scope constructs.Construct, id string, props *StackProps) awscdk.S
 		Description: jsii.String("Strava app client secret"),
 		Default:     "",
 		NoEcho:      jsii.Bool(true),
+	})
+
+	awsdynamodb.NewTableV2(stack, jsii.String("BaggingDB"), &awsdynamodb.TablePropsV2{
+		TableClass:          awsdynamodb.TableClass_STANDARD,
+		PartitionKey:        &awsdynamodb.Attribute{Type: awsdynamodb.AttributeType_STRING, Name: jsii.String("id")},
+		Billing:             awsdynamodb.Billing_OnDemand(),
+		RemovalPolicy:       awscdk.RemovalPolicy_DESTROY,
+		TableName:           jsii.String("StravaShoesBagging"),
+		TimeToLiveAttribute: jsii.String("Expiry"),
 	})
 
 	gearIds := awscdk.NewCfnParameter(stack, jsii.String("GearIds"), &awscdk.CfnParameterProps{
