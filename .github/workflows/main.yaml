@@ -13,3 +13,7 @@ jobs:
   build:
     name: build
     uses: ./.github/workflows/build.yaml
+
+  deploy:
+    name: deploy
+    uses: ./.github/workflows/deploy.yaml
