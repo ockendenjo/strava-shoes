@@ -14,25 +14,5 @@ jobs:
 
   synth:
     name: synth
+    needs: [build]
     uses: ./.github/workflows/synth.yaml
-
-
-#
-
-#
-
-#
-#      - name: S3 sync
-#        shell: bash
-#        run: |
-#          aws s3 sync ./dist/aleympics/browser s3://aleympics.com
-#
-#      - name: Sports sync
-#        shell: bash
-#        run: |
-#          aws s3 sync ./sports s3://sports.aleympics.com
-#
-#      - name: Test
-#        shell: bash
-#        run: |
-#          go test ./... -v --tags integration

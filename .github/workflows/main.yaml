@@ -16,4 +16,5 @@ jobs:
 
   deploy:
     name: deploy
+    needs: [build]
     uses: ./.github/workflows/deploy.yaml
