@@ -1,0 +1,11 @@
+name: main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: test
+    uses: ./.github/workflows/test.yaml
