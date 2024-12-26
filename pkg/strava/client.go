@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 )
 
 func NewClient(ssmClient *ssm.Client, httpClient *http.Client) *Client {
@@ -143,13 +144,14 @@ type refreshResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (c *Client) GetActivities(ctx context.Context) ([]Activity, error) {
+func (c *Client) GetActivities(ctx context.Context, page int) ([]Activity, error) {
 	accessToken, err := c.getAccessToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", "https://www.strava.com/api/v3/athlete/activities", nil)
+	stravaUrl := fmt.Sprintf("https://www.strava.com/api/v3/athlete/activities?page=%d", page)
+	req, err := http.NewRequestWithContext(ctx, "GET", stravaUrl, nil)
 	if err != nil {
 		return nil, err
 	}

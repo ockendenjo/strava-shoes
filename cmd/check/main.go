@@ -5,14 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"slices"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
-	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-xray-sdk-go/xray"
@@ -24,12 +22,14 @@ import (
 
 const maxParallel = 10
 
+type H = handler.Handler[CheckActivitiesEvent, any]
+
 func main() {
 	gearIds := mustGetSliceEnv("GEAR_IDS")
 	topicArn := handler.MustGetEnv("TOPIC_ARN")
 	baggingDb := handler.MustGetEnv("BAGGING_DB")
 
-	handler.BuildAndStart(func(awsConfig aws.Config) handler.Handler[any, any] {
+	handler.BuildAndStart(func(awsConfig aws.Config) H {
 		ssmClient := ssm.NewFromConfig(awsConfig)
 		ebClient := eventbridge.NewFromConfig(awsConfig)
 		baggingClient := bagging.NewClient(dynamodb.NewFromConfig(awsConfig), baggingDb)
@@ -47,12 +47,17 @@ func main() {
 	})
 }
 
-func getHandler(stravaClient *strava.Client, snsClient *sns.Client, checkActivity checkActivityFn, topicArn string) handler.Handler[any, any] {
-	return func(ctx context.Context, event any) (any, error) {
+func getHandler(stravaClient *strava.Client, snsClient *sns.Client, checkActivity checkActivityFn, topicArn string) H {
+	return func(ctx context.Context, event CheckActivitiesEvent) (any, error) {
 		logger := handler.GetLogger(ctx)
 
+		page := 1
+		if event.Page > 1 {
+			page = event.Page
+		}
+
 		//Load activities
-		activities, err := stravaClient.GetActivities(ctx)
+		activities, err := stravaClient.GetActivities(ctx, page)
 		if err != nil {
 			return nil, err
 		}
@@ -107,82 +112,6 @@ func getHandler(stravaClient *strava.Client, snsClient *sns.Client, checkActivit
 	}
 }
 
-func buildCheckActivityFunc(gearIds []string, client bagging.Client, ebClient *eventbridge.Client) checkActivityFn {
-	sportTypes := []string{"Run", "Hike", "Walk", "Ride"}
-	isGearOk := getCheckFn(sportTypes, gearIds)
-
-	return func(ctx context.Context, activity *strava.Activity, ch chan checkActivityResult) {
-		gearOk := isGearOk(activity)
-		result := checkActivityResult{
-			gearOk:   gearOk,
-			activity: activity,
-		}
-
-		checked, err := client.HasId(ctx, activity.ID)
-		if err != nil {
-			result.err = fmt.Errorf("error checking ID %d in bagging DB: %w", activity.ID, err)
-			ch <- result
-			return
-		}
-
-		if checked {
-			ch <- result
-			return
-		}
-
-		res, err := ebClient.PutEvents(ctx, &eventbridge.PutEventsInput{
-			Entries: []types.PutEventsRequestEntry{{
-				Source:     aws.String("io.ockenden.strava"),
-				DetailType: aws.String("StravaActivityBaggingCheck"),
-				Detail:     aws.String(fmt.Sprintf(`{"id": %d}`, activity.ID)),
-			}},
-		})
-		if err != nil {
-			result.err = fmt.Errorf("error sending EventBridge event for ID %d: %w", activity.ID, err)
-			ch <- result
-			return
-		}
-		if res.FailedEntryCount > 0 {
-			result.err = fmt.Errorf("error sending EventBridge event for ID %d: failed", activity.ID)
-			ch <- result
-			return
-		}
-
-		err = client.PutId(ctx, activity.ID)
-		if err != nil {
-			result.err = fmt.Errorf("error putting ID %d in bagging DB: %w", activity.ID, err)
-			ch <- result
-			return
-		}
-
-		ch <- result
-	}
-}
-
-type checkActivityResult struct {
-	gearOk   bool
-	err      error
-	activity *strava.Activity
-}
-
-type checkActivityFn func(ctx context.Context, activity *strava.Activity, ch chan checkActivityResult)
-
-func getCheckFn(sportTypes []string, gearIds []string) func(a *strava.Activity) bool {
-
-	return func(a *strava.Activity) bool {
-		if !slices.Contains(sportTypes, a.SportType) {
-			//Sport type is ignored
-			return true
-		}
-
-		if a.GearID == "" {
-			return false
-		}
-
-		return !slices.Contains(gearIds, a.GearID)
-	}
-}
-
 func mustGetSliceEnv(key string) []string {
 	v := handler.MustGetEnv(key)
 	var a []string
@@ -191,4 +120,8 @@ func mustGetSliceEnv(key string) []string {
 		panic(err)
 	}
 	return a
+}
+
+type CheckActivitiesEvent struct {
+	Page int `json:"page,omitempty"`
 }
