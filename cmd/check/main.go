@@ -111,7 +111,8 @@ func buildCheckActivityFunc(gearIds []string, client bagging.Client) checkActivi
 	return func(ctx context.Context, activity *strava.Activity, ch chan checkActivityResult) {
 		gearOk := isGearOk(activity)
 		result := checkActivityResult{
-			gearOk: gearOk,
+			gearOk:   gearOk,
+			activity: activity,
 		}
 
 		checked, err := client.HasId(ctx, activity.ID)
