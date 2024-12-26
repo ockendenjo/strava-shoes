@@ -134,7 +134,7 @@ func buildCheckActivityFunc(gearIds []string, client bagging.Client, ebClient *e
 			Entries: []types.PutEventsRequestEntry{{
 				Source:     aws.String("io.ockenden.strava"),
 				DetailType: aws.String("StravaActivityBaggingCheck"),
-				Detail:     aws.String(`{"id": "` + fmt.Sprint(activity.ID) + `"}`),
+				Detail:     aws.String(fmt.Sprintf(`{"id": %d}`, activity.ID)),
 			}},
 		})
 		if err != nil {
