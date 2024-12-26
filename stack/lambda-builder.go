@@ -106,7 +106,7 @@ func (lb *LambdaBuilder) Build() *LambdaConstruct {
 		FunctionName: jsii.String(lb.functionName),
 		Environment:  &lb.env,
 		Timeout:      awscdk.Duration_Seconds(jsii.Number(10)),
-		MemorySize:   jsii.Number(256),
+		MemorySize:   jsii.Number(512),
 		Tracing:      lambda.Tracing_ACTIVE,
 	})
 
