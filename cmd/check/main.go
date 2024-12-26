@@ -116,7 +116,7 @@ func buildCheckActivityFunc(gearIds []string, client bagging.Client) checkActivi
 
 		checked, err := client.HasId(ctx, activity.ID)
 		if err != nil {
-			result.err = err
+			result.err = fmt.Errorf("error checking ID %d in bagging DB: %w", activity.ID, err)
 			ch <- result
 			return
 		}
@@ -130,7 +130,7 @@ func buildCheckActivityFunc(gearIds []string, client bagging.Client) checkActivi
 
 		err = client.PutId(ctx, activity.ID)
 		if err != nil {
-			result.err = err
+			result.err = fmt.Errorf("error putting ID %d in bagging DB: %w", activity.ID, err)
 			ch <- result
 			return
 		}
