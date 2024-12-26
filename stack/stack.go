@@ -39,9 +39,9 @@ func NewStack(scope constructs.Construct, id string, props *StackProps) awscdk.S
 		NoEcho:      jsii.Bool(true),
 	})
 
-	awsdynamodb.NewTableV2(stack, jsii.String("BaggingDB"), &awsdynamodb.TablePropsV2{
+	baggingDB := awsdynamodb.NewTableV2(stack, jsii.String("BaggingDB"), &awsdynamodb.TablePropsV2{
 		TableClass:          awsdynamodb.TableClass_STANDARD,
-		PartitionKey:        &awsdynamodb.Attribute{Type: awsdynamodb.AttributeType_STRING, Name: jsii.String("id")},
+		PartitionKey:        &awsdynamodb.Attribute{Type: awsdynamodb.AttributeType_STRING, Name: jsii.String("ID")},
 		Billing:             awsdynamodb.Billing_OnDemand(nil),
 		RemovalPolicy:       awscdk.RemovalPolicy_DESTROY,
 		TableName:           jsii.String("StravaShoesBagging"),
@@ -78,7 +78,9 @@ func NewStack(scope constructs.Construct, id string, props *StackProps) awscdk.S
 		WithParamsAccess().
 		WithEnvVar(*gearIds.ValueAsString(), "GEAR_IDS").
 		WithTopicPublish(topic, "TOPIC_ARN").
-		Build().RunAtFixedRate(DailyAtTime(18, 0))
+		WithDynamoDBV2(baggingDB, "BAGGING_DB").
+		Build().
+		RunAtFixedRate(DailyAtTime(18, 0))
 
 	authLambda := NewLambda(stack, "AuthLambda", "build/auth").
 		WithParamsAccess().

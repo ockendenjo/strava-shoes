@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsevents"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
@@ -73,6 +74,12 @@ func (lb *LambdaBuilder) WithParamsAccess() *LambdaBuilder {
 }
 
 func (lb *LambdaBuilder) WithDynamoDB(table awsdynamodb.Table, tableEnvKey string) *LambdaBuilder {
+	table.GrantReadWriteData(lb.role)
+	lb.env[tableEnvKey] = table.TableName()
+	return lb
+}
+
+func (lb *LambdaBuilder) WithDynamoDBV2(table awsdynamodb.TableV2, tableEnvKey string) *LambdaBuilder {
 	table.GrantReadWriteData(lb.role)
 	lb.env[tableEnvKey] = table.TableName()
 	return lb
