@@ -53,14 +53,15 @@ func (c *Client) Authorize(ctx context.Context, code string) error {
 		return err
 	}
 	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		return HttpStatusError{res.StatusCode}
-	}
 
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return err
 	}
+	if res.StatusCode != 200 {
+		return HttpStatusError{StatusCode: res.StatusCode, Body: string(bytes)}
+	}
+
 	var refreshRes refreshResponse
 	err = json.Unmarshal(bytes, &refreshRes)
 	if err != nil {
@@ -112,14 +113,15 @@ func (c *Client) getAccessToken(ctx context.Context) (string, error) {
 		return "", err
 	}
 	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		return "", HttpStatusError{res.StatusCode}
-	}
 
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
 	}
+	if res.StatusCode != 200 {
+		return "", HttpStatusError{StatusCode: res.StatusCode, Body: string(bytes)}
+	}
+
 	var refreshRes refreshResponse
 	err = json.Unmarshal(bytes, &refreshRes)
 	if err != nil {
@@ -163,12 +165,12 @@ func (c *Client) GetActivities(ctx context.Context, page int) ([]Activity, error
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return nil, HttpStatusError{StatusCode: res.StatusCode}
-	}
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
+	}
+	if res.StatusCode != http.StatusOK {
+		return nil, HttpStatusError{StatusCode: res.StatusCode, Body: string(bytes)}
 	}
 
 	var activities []Activity
@@ -185,8 +187,9 @@ type Activity struct {
 
 type HttpStatusError struct {
 	StatusCode int
+	Body       string
 }
 
 func (e HttpStatusError) Error() string {
-	return fmt.Sprintf("HTTP request returned status code %d", e.StatusCode)
+	return fmt.Sprintf("HTTP request returned status code %d: %s", e.StatusCode, e.Body)
 }
