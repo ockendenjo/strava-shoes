@@ -85,6 +85,11 @@ func (lb *LambdaBuilder) WithDynamoDBV2(table awsdynamodb.TableV2, tableEnvKey s
 	return lb
 }
 
+func (lb *LambdaBuilder) AllowEventBridge() *LambdaBuilder {
+	lb.role.AddManagedPolicy(awsiam.ManagedPolicy_FromAwsManagedPolicyName(jsii.String("AmazonEventBridgeFullAccess")))
+	return lb
+}
+
 func (lb *LambdaBuilder) WithHttpApi(api awsapigateway.RestApi, urlEnvKey string) *LambdaBuilder {
 	lb.env[urlEnvKey] = api.Url()
 	return lb

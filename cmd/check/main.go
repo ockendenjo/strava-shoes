@@ -11,6 +11,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
+	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-xray-sdk-go/xray"
@@ -29,8 +31,9 @@ func main() {
 
 	handler.BuildAndStart(func(awsConfig aws.Config) handler.Handler[any, any] {
 		ssmClient := ssm.NewFromConfig(awsConfig)
+		ebClient := eventbridge.NewFromConfig(awsConfig)
 		baggingClient := bagging.NewClient(dynamodb.NewFromConfig(awsConfig), baggingDb)
-		checkActivity := buildCheckActivityFunc(gearIds, baggingClient)
+		checkActivity := buildCheckActivityFunc(gearIds, baggingClient, ebClient)
 
 		httpClient := &http.Client{
 			Timeout:   3 * time.Second,
@@ -104,7 +107,7 @@ func getHandler(stravaClient *strava.Client, snsClient *sns.Client, checkActivit
 	}
 }
 
-func buildCheckActivityFunc(gearIds []string, client bagging.Client) checkActivityFn {
+func buildCheckActivityFunc(gearIds []string, client bagging.Client, ebClient *eventbridge.Client) checkActivityFn {
 	sportTypes := []string{"Run", "Hike", "Walk", "Ride"}
 	isGearOk := getCheckFn(sportTypes, gearIds)
 
@@ -127,7 +130,23 @@ func buildCheckActivityFunc(gearIds []string, client bagging.Client) checkActivi
 			return
 		}
 
-		//TODO: Send to EventBridge
+		res, err := ebClient.PutEvents(ctx, &eventbridge.PutEventsInput{
+			Entries: []types.PutEventsRequestEntry{{
+				Source:     aws.String("io.ockenden.strava"),
+				DetailType: aws.String("StravaActivityBaggingCheck"),
+				Detail:     aws.String(`{"id": "` + fmt.Sprint(activity.ID) + `"}`),
+			}},
+		})
+		if err != nil {
+			result.err = fmt.Errorf("error sending EventBridge event for ID %d: %w", activity.ID, err)
+			ch <- result
+			return
+		}
+		if res.FailedEntryCount > 0 {
+			result.err = fmt.Errorf("error sending EventBridge event for ID %d: failed", activity.ID)
+			ch <- result
+			return
+		}
 
 		err = client.PutId(ctx, activity.ID)
 		if err != nil {

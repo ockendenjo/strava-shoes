@@ -79,6 +79,7 @@ func NewStack(scope constructs.Construct, id string, props *StackProps) awscdk.S
 		WithEnvVar(*gearIds.ValueAsString(), "GEAR_IDS").
 		WithTopicPublish(topic, "TOPIC_ARN").
 		WithDynamoDBV2(baggingDB, "BAGGING_DB").
+		AllowEventBridge().
 		Build().
 		RunAtFixedRate(DailyAtTime(18, 0))
 
