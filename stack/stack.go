@@ -54,6 +54,12 @@ func NewStack(scope constructs.Construct, id string, props *StackProps) awscdk.S
 		Default:     `["g9558316", ""]`,
 	})
 
+	permBoundaryArn := awscdk.NewCfnParameter(stack, jsii.String("PermissionBoundaryArn"), &awscdk.CfnParameterProps{
+		Type:        jsii.String("String"),
+		Description: jsii.String("AWS Permissions Boundary ARN"),
+	})
+	permBoundary := awsiam.ManagedPolicy_FromManagedPolicyArn(stack, jsii.String("PermissionsBoundary"), permBoundaryArn.ToString())
+
 	role := awsiam.NewRole(stack, jsii.String("LambdaRole"), &awsiam.RoleProps{
 		AssumedBy: awsiam.NewServicePrincipal(jsii.String("lambda.amazonaws.com"), nil),
 	})
@@ -74,7 +80,7 @@ func NewStack(scope constructs.Construct, id string, props *StackProps) awscdk.S
 	topic := awssns.NewTopic(stack, jsii.String("Topic"), nil)
 	topic.GrantPublish(role)
 
-	NewLambda(stack, "GearCheckLambda", "build/check").
+	NewLambda(stack, "GearCheckLambda", "build/check", permBoundary).
 		WithParamsAccess().
 		WithEnvVar(*gearIds.ValueAsString(), "GEAR_IDS").
 		WithTopicPublish(topic, "TOPIC_ARN").
@@ -83,7 +89,7 @@ func NewStack(scope constructs.Construct, id string, props *StackProps) awscdk.S
 		Build().
 		RunAtFixedRate(DailyAtTime(18, 0))
 
-	authLambda := NewLambda(stack, "AuthLambda", "build/auth").
+	authLambda := NewLambda(stack, "AuthLambda", "build/auth", permBoundary).
 		WithParamsAccess().
 		Build()
 	authIntegration := awsapigatewayv2integrations.NewHttpLambdaIntegration(jsii.String("AuthIntegration"), authLambda.LambdaFn, nil)

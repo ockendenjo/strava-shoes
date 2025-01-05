@@ -32,4 +32,4 @@ jobs:
       - name: deploy
         shell: bash
         run: |
-          cdk deploy --require-approval never --no-color
+          cdk deploy --require-approval never --no-color --parameters "PermissionBoundaryArn=arn:aws:iam::574363388371:policy/cicd-permissions-boundary"

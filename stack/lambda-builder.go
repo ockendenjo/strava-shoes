@@ -24,12 +24,13 @@ type LambdaBuilder struct {
 	role         awsiam.Role
 }
 
-func NewLambda(stack awscdk.Stack, id string, codePath string) *LambdaBuilder {
+func NewLambda(stack awscdk.Stack, id string, codePath string, permissionsBoundary awsiam.IManagedPolicy) *LambdaBuilder {
 	construct := constructs.NewConstruct(stack, jsii.String(id))
 
 	role := awsiam.NewRole(construct, jsii.String("serviceRole"), &awsiam.RoleProps{
-		RoleName:  jsii.String(fmt.Sprintf("lambda-%s__%s", *stack.Region(), id)),
-		AssumedBy: awsiam.NewServicePrincipal(jsii.String("lambda.amazonaws.com"), &awsiam.ServicePrincipalOpts{}),
+		RoleName:            jsii.String(fmt.Sprintf("lambda-%s__%s", *stack.Region(), id)),
+		AssumedBy:           awsiam.NewServicePrincipal(jsii.String("lambda.amazonaws.com"), &awsiam.ServicePrincipalOpts{}),
+		PermissionsBoundary: permissionsBoundary,
 	})
 	lambdaPermissions := awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
 		Effect: awsiam.Effect_ALLOW,
