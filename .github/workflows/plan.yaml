@@ -5,6 +5,8 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     environment: pro
+    permissions:
+      id-token: write
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
