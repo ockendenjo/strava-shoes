@@ -22,10 +22,20 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           mask-aws-account-id: true
 
+      - name: setup backend config
+        working-directory: stack
+        shell: bash
+        run: |
+          cat > backend.hcl << 'EOF'
+          bucket         = "${{ secrets.TF_STATE_BUCKET }}"
+          key            = "${{ secrets.TF_STATE_OBJECT_KEY }}"
+          region         = "${{ vars.AWS_REGION }}"
+          EOF
+
       - name: init
         working-directory: stack
         run: |
-          terraform init -backend-config="tfvars/backend-pro.hcl"
+          terraform init -backend-config=backend.hcl
 
       - name: plan
         working-directory: stack
