@@ -20,8 +20,8 @@ func Test_getOutputPath(t *testing.T) {
 	}{
 		{
 			name:     "non-nested directory",
-			mainFile: "./cmd/publish/main.go",
-			expPath:  "build/publish/bootstrap",
+			mainFile: "./cmd/send-pub-to-dip/main.go",
+			expPath:  "build/send-pub-to-dip/bootstrap",
 		},
 		{
 			name:     "nested directory",

@@ -53,10 +53,56 @@ cdk destroy
 
 ## tasks
 
+### profile
+
+```shell
+cat >> ~/.aws/config <<EOF
+[profile strava]
+region = eu-west-1
+output = json
+role_arn = arn:aws:iam::574363388371:role/strava-cicd
+source_profile = default
+
+EOF
+```
+
+### init
+
+directory: stack
+environment: AWS_PROFILE=strava
+
+```shell
+terraform init -backend-config="tfvars/backend-pro.hcl" -reconfigure
+```
+
 ### format
 
 directory: stack
 
 ```shell
 terraform fmt --recursive --write .
+```
+
+### build-cmd
+
+requires: clean
+
+```shell
+go run ./scripts/build-cmd --zip
+```
+
+### upload-cmd
+
+requires: build-cmd
+environment: AWS_PROFILE=strava
+environment: BINARY_BUCKET=strava-lambda-binaries20260202095142751100000001
+
+```shell
+go run ./scripts/upload-binaries
+```
+
+### clean
+
+```shell
+rm -rf build/* || true
 ```
