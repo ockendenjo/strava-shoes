@@ -4,6 +4,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -14,7 +15,8 @@ jobs:
           go-version-file: "go.mod"
 
       - name: Set up tparse
-        run: go install github.com/mfridman/tparse@latest
+        run: |
+          go install github.com/mfridman/tparse@latest
 
       - name: Run tests
         shell: bash

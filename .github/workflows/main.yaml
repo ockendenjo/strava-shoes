@@ -5,13 +5,23 @@ on:
     branches:
       - main
 
+concurrency:
+  group: main
+  cancel-in-progress: false
+
 jobs:
   test:
     uses: ./.github/workflows/test.yaml
 
   build:
+    secrets: inherit
     uses: ./.github/workflows/build.yaml
+    with:
+      upload: true
 
   deploy:
+    secrets: inherit
     needs: [build, test]
-    uses: ./.github/workflows/deploy.yaml
+    uses: ./.github/workflows/tf.yaml
+    with:
+      apply: true

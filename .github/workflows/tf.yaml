@@ -1,0 +1,68 @@
+on:
+  workflow_call:
+    inputs:
+      apply:
+        type: boolean
+        default: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    environment: pro
+    timeout-minutes: 10
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - name: setup backend config
+        working-directory: stack
+        shell: bash
+        run: |
+          cat > backend.hcl << 'EOF'
+          bucket         = "${{ secrets.TF_STATE_BUCKET }}"
+          key            = "${{ secrets.TF_STATE_OBJECT_KEY }}"
+          region         = "${{ secrets.AWS_REGION }}"
+          EOF
+
+      - name: init
+        working-directory: stack
+        run: |
+          terraform init -backend-config=backend.hcl
+
+      - name: setup variables
+        working-directory: stack
+        shell: bash
+        run: |
+          cat > pro.auto.tfvars << 'EOF'
+          aws_account_id           = "${{ secrets.AWS_ACCOUNT_ID }}"
+          aws_region               = "${{ secrets.AWS_REGION }}"
+          client_id                = "${{ secrets.STRAVA_CLIENT_ID }}"
+          env                      = "pro"
+          gear_ids                 = "[\"g9558316\", \"\"]"
+          lambda_binaries_bucket   = "${{ secrets.BINARY_BUCKET }}"
+          permissions_boundary_arn = "${{ secrets.PERMISSIONS_BOUNDARY_ARN }}"
+          EOF
+
+      - name: plan
+        if: inputs.apply == 'false'
+        working-directory: stack
+        run: |
+          terraform plan
+
+      - name: apply
+        if: inputs.apply == 'true'
+        working-directory: stack
+        run: |
+          terraform apply -auto-approve

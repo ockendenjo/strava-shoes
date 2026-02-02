@@ -4,9 +4,10 @@ This project contains source code for an AWS serverless application for checking
 
 ## Longer intro
 
-This project contains a CDK stack which configures a number of lambda functions. One lambda
-function is used to handle the authorization response from strava. The other lambda function is run on a schedule
-(via CloudWatch events) and queries the Strava API to check the gear assigned to activities.
+This project contains a Terraform stack which configures a number of lambda functions. 
+One lambda function is used to handle the authorization response from strava. 
+The other lambda function is run on a schedule (via CloudWatch events) and queries the Strava API to check the gear 
+assigned to activities.
 
 Subscriptions can be added to the configured SNS topic to receive notifications.
 
@@ -18,24 +19,11 @@ Use `example.com` as the **Authorization Callback Domain** for now.
 
 ## Deploy
 
-To build and deploy your application for the first time, run the following in your shell:
-
-```bash
- cdk bootstrap
- cdk deploy --parameters "clientId=<clientId>" --parameters "clientSecret=<clientSecret>"
-```
-
-The first command will build the source of your application. The second command will package and deploy your application to AWS, with a series of prompts:
-
-
-* **AWS Region**: The AWS region you want to deploy your app to.
-* **ClientId**: Strava App client ID (from the app details on Strava)
-* **ClientSecret**: Strava App client secret (from the app details on Strava)
-* **GearIds**: Any gear which should trigger a notification - e.g. `["g1234", null]`
-
-Note: The ClientSecret would be better stored as a `SecureString` parameter in systems manager, but CloudFormation doesn't
-support that functionality. For better security the client secret could be removed as a stack parameter
-and entered into the parameter store manually. Or, use SecretsManager instead, but this was intended to be a low-cost solution.
+* Modify the `upload-cmd` task to upload lambda binaries to your own bucket.
+* Modify the `tfvars/pro.tfvars` file to use your own resources.
+* Modify the `tfvars/backend-pro.hcl` file to use your own bucket.
+* Run `xc init` to initialise the project.
+* Run `xc apply` to deploy the stack.
 
 ## Stack outputs
 
@@ -45,8 +33,85 @@ The stack produces two outputs:
 
 ## Cleanup
 
-To delete the sample application that you created, use the AWS CLI. Assuming you used your project name for the stack name, you can run the following:
+Use `terraform destroy -auto-approve`
 
-```bash
-cdk destroy
+## tasks
+
+[xcfile.dev](xcfile.dev) tasks:
+
+### apply
+
+requires: upload-cmd, just-apply
+
+### build-cmd
+
+requires: clean
+
+```shell
+go run ./scripts/build-cmd --zip
+```
+
+### clean
+
+```shell
+rm -rf build/* || true
+```
+
+### format
+
+directory: stack
+
+```shell
+terraform fmt --recursive --write .
+```
+
+### init
+
+directory: stack
+environment: AWS_PROFILE=strava
+
+```shell
+terraform init -backend-config="tfvars/backend-pro.hcl" -reconfigure
+```
+
+### just-apply
+
+directory: stack
+environment: AWS_PROFILE=strava
+
+```shell
+terraform apply -auto-approve -var-file="tfvars/pro.tfvars"
+```
+
+### plan
+
+requires: upload-cmd
+directory: stack
+environment: AWS_PROFILE=strava
+
+```shell
+terraform plan -var-file="tfvars/pro.tfvars"
+```
+
+### profile
+
+```shell
+cat >> ~/.aws/config <<EOF
+[profile strava]
+region = eu-west-1
+output = json
+role_arn = arn:aws:iam::574363388371:role/strava-cicd
+source_profile = default
+
+EOF
+```
+
+### upload-cmd
+
+requires: build-cmd
+environment: AWS_PROFILE=strava
+environment: BINARY_BUCKET=strava-lambda-binaries20260202095142751100000001
+
+```shell
+go run ./scripts/upload-binaries
 ```

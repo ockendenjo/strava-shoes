@@ -1,9 +1,16 @@
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      upload:
+        type: boolean
+        default: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: pro
+    permissions:
+      id-token: write
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -19,12 +26,22 @@ jobs:
           go get ./...
 
       - name: Build commands
-        run: make build
+        shell: bash
+        run: |
+          go run ./scripts/build-cmd --zip
 
-      - name: Upload artifact
-        id: upload
-        uses: actions/upload-artifact@v4
+      - name: configure aws credentials
+        if: ${{ inputs.upload }}
+        uses: aws-actions/configure-aws-credentials@v5
         with:
-          path: build
-          name: build
-          retention-days: 1
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - name: Upload artifacts
+        if: ${{ inputs.upload }}
+        shell: bash
+        run: |
+          go run ./scripts/upload-binaries
+        env:
+          BINARY_BUCKET: ${{ secrets.BINARY_BUCKET }}

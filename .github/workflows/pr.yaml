@@ -8,8 +8,9 @@ jobs:
     uses: ./.github/workflows/test.yaml
 
   build:
+    secrets: inherit
     uses: ./.github/workflows/build.yaml
 
-  synth:
-    needs: [build]
-    uses: ./.github/workflows/synth.yaml
+  plan:
+    secrets: inherit
+    uses: ./.github/workflows/tf.yaml

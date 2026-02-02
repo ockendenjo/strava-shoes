@@ -1,14 +1,13 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/aws/aws-xray-sdk-go/xray"
+	"github.com/aws/aws-xray-sdk-go/v2/xray"
 	"github.com/ockendenjo/handler"
 	"github.com/ockendenjo/strava/pkg/strava"
 )
@@ -30,7 +29,9 @@ func main() {
 }
 
 func getHandler(client *strava.Client) apiHandler {
-	return func(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	return func(ctx *handler.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+		logger := ctx.GetLogger()
+
 		code, found := event.QueryStringParameters["code"]
 		if !found {
 			return getResponse(http.StatusUnauthorized, "No 'code' parameter in query string parameters"), nil
@@ -38,8 +39,11 @@ func getHandler(client *strava.Client) apiHandler {
 
 		err := client.Authorize(ctx, code)
 		if err != nil {
+			logger.AddParam("error", err).Error("Authorization error")
 			return getResponse(http.StatusInternalServerError, "Something went wrong"), nil
 		}
+
+		logger.Info("Authorized")
 		return getResponse(http.StatusOK, "Authorized"), nil
 	}
 }

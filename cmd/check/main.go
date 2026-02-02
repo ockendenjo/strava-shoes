@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/aws/aws-xray-sdk-go/xray"
+	"github.com/aws/aws-xray-sdk-go/v2/xray"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/ockendenjo/handler"
 	"github.com/ockendenjo/strava/pkg/bagging"
@@ -48,8 +47,8 @@ func main() {
 }
 
 func getHandler(stravaClient *strava.Client, snsClient *sns.Client, checkActivity checkActivityFn, topicArn string) H {
-	return func(ctx context.Context, event CheckActivitiesEvent) (any, error) {
-		logger := handler.GetLogger(ctx)
+	return func(ctx *handler.Context, event CheckActivitiesEvent) (any, error) {
+		logger := ctx.GetLogger()
 
 		page := 1
 		if event.Page > 1 {
