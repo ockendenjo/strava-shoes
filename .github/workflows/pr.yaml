@@ -8,8 +8,11 @@ jobs:
     uses: ./.github/workflows/test.yaml
 
   build:
+    secrets: inherit
     uses: ./.github/workflows/build.yaml
 
   plan:
     secrets: inherit
-    uses: ./.github/workflows/plan.yaml
+    uses: ./github/workflows/tf.yaml
+    with:
+      apply: false
