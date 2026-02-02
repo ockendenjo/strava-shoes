@@ -14,7 +14,8 @@ jobs:
           go-version-file: "go.mod"
 
       - name: Set up tparse
-        run: go install github.com/mfridman/tparse@latest
+        run: |
+          go install github.com/mfridman/tparse@latest
 
       - name: Run tests
         shell: bash

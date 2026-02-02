@@ -10,6 +10,6 @@ jobs:
   build:
     uses: ./.github/workflows/build.yaml
 
-  synth:
+  plan:
     needs: [build]
-    uses: ./.github/workflows/synth.yaml
+    uses: ./.github/workflows/plan.yaml

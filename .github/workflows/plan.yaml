@@ -1,0 +1,22 @@
+on:
+  workflow_call: {}
+
+jobs:
+  synth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: init
+        working-directory: stack
+        run: |
+          terraform init
+
+      - name: plan
+        working-directory: stack
+        run: |
+          terraform plan

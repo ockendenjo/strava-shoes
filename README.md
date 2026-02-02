@@ -50,3 +50,13 @@ To delete the sample application that you created, use the AWS CLI. Assuming you
 ```bash
 cdk destroy
 ```
+
+## tasks
+
+### format
+
+directory: stack
+
+```shell
+terraform fmt --recursive --write .
+```
