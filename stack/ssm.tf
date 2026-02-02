@@ -5,7 +5,7 @@ resource "aws_ssm_parameter" "client_id" {
   tier  = "Standard"
 
   lifecycle {
-    ignore_changes = [value]
+    ignore_changes = [value, type]
   }
 }
 
@@ -16,7 +16,7 @@ resource "aws_ssm_parameter" "client_secret" {
   tier  = "Standard"
 
   lifecycle {
-    ignore_changes = [value]
+    ignore_changes = [value, type]
   }
 }
 
@@ -27,7 +27,7 @@ resource "aws_ssm_parameter" "access_token" {
   tier  = "Standard"
 
   lifecycle {
-    ignore_changes = [value]
+    ignore_changes = [value, type]
   }
 }
 
