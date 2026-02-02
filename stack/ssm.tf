@@ -38,6 +38,6 @@ resource "aws_ssm_parameter" "refresh_token" {
   tier  = "Standard"
 
   lifecycle {
-    ignore_changes = [value]
+    ignore_changes = [value, type]
   }
 }

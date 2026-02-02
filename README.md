@@ -116,3 +116,15 @@ environment: AWS_PROFILE=strava
 ```shell
 terraform plan -var-file="tfvars/pro.tfvars"
 ```
+### apply
+
+requires: upload-cmd, just-apply
+
+### just-apply
+
+directory: stack
+environment: AWS_PROFILE=strava
+
+```shell
+terraform apply -auto-approve -var-file="tfvars/pro.tfvars"
+```

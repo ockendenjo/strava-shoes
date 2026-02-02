@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_event_rule" "gear_check_schedule" {
-  name                = "gear-check-schedule"
+  name                = "strava-gear-check-schedule"
   description         = "Run gear check daily at 18:00"
   schedule_expression = "cron(0 18 * * ? *)"
 }
@@ -10,7 +10,8 @@ resource "aws_cloudwatch_event_target" "gear_check_lambda" {
   arn       = module.lambda_gear_check.arn
 
   retry_policy {
-    maximum_retry_attempts = 1
+    maximum_event_age_in_seconds = 60
+    maximum_retry_attempts       = 1
   }
 }
 
