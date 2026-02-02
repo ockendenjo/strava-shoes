@@ -3,10 +3,8 @@ on:
 
 jobs:
   deploy:
-    concurrency:
-      group: main
-      cancel-in-progress: false
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: pro
     permissions:
       id-token: write   # This is required for requesting the JWT

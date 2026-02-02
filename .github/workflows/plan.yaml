@@ -5,6 +5,7 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     environment: pro
+    timeout-minutes: 10
     permissions:
       id-token: write
     steps:
