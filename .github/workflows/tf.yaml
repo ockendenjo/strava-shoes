@@ -6,7 +6,7 @@ on:
         default: false
 
 jobs:
-  plan:
+  tf:
     runs-on: ubuntu-latest
     environment: pro
     timeout-minutes: 10
@@ -56,13 +56,13 @@ jobs:
           EOF
 
       - name: plan
-        if: inputs.apply == 'false'
+        if: ${{ !inputs.apply }}
         working-directory: stack
         run: |
           terraform plan
 
       - name: apply
-        if: inputs.apply == 'true'
+        if: ${{ inputs.apply }}
         working-directory: stack
         run: |
           terraform apply -auto-approve
