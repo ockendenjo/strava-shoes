@@ -11,4 +11,5 @@ jobs:
     uses: ./.github/workflows/build.yaml
 
   plan:
+    secrets: inherit
     uses: ./.github/workflows/plan.yaml
