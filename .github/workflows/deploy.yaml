@@ -7,6 +7,7 @@ jobs:
       group: main
       cancel-in-progress: false
     runs-on: ubuntu-latest
+    environment: pro
     permissions:
       id-token: write   # This is required for requesting the JWT
       contents: read    # This is required for actions/checkout
@@ -14,22 +15,21 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Install CDK
-        run: |
-          npm install -g aws-cdk
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
 
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
-          role-to-assume: 'arn:aws:iam::574363388371:role/strava-cicd'
-          aws-region: eu-west-1
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: build
-
-      - name: deploy
-        shell: bash
+      - name: init
+        working-directory: stack
         run: |
-          cdk deploy --require-approval never --no-color --parameters "PermissionBoundaryArn=arn:aws:iam::574363388371:policy/cicd-permissions-boundary"
+          terraform init -backend-config="tfvars/backend-pro.hcl"
+
+      - name: apply
+        working-directory: stack
+        run: |
+          terraform apply -var-file="tfvars/pro.tfvars" --auto-approve

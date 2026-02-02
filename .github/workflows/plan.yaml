@@ -17,8 +17,8 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
-          role-to-assume: 'arn:aws:iam::574363388371:role/strava-cicd'
-          aws-region: eu-west-1
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: init
         working-directory: stack

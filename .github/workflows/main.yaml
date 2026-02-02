@@ -11,6 +11,8 @@ jobs:
 
   build:
     uses: ./.github/workflows/build.yaml
+    with:
+      upload: true
 
   deploy:
     needs: [build, test]

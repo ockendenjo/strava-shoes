@@ -11,5 +11,4 @@ jobs:
     uses: ./.github/workflows/build.yaml
 
   plan:
-    needs: [build]
     uses: ./.github/workflows/plan.yaml
