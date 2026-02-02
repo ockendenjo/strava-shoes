@@ -13,6 +13,4 @@ jobs:
 
   plan:
     secrets: inherit
-    uses: ./github/workflows/tf.yaml
-    with:
-      apply: false
+    uses: ./.github/workflows/tf.yaml
