@@ -106,3 +106,13 @@ go run ./scripts/upload-binaries
 ```shell
 rm -rf build/* || true
 ```
+
+### plan
+
+requires: upload-cmd
+directory: stack
+environment: AWS_PROFILE=strava
+
+```shell
+terraform plan -var-file="tfvars/pro.tfvars"
+```

@@ -10,3 +10,9 @@ module "lambda_auth" {
 
   environment = {}
 }
+
+module "iam_ssm_lambda_auth" {
+  source  = "github.com/ockendenjo/tfmods//iam-ssm"
+  role_id = module.lambda_auth.role_id
+  ssm_arn = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/strava*"
+}
