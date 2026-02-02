@@ -2,8 +2,9 @@ on:
   workflow_call: {}
 
 jobs:
-  synth:
+  plan:
     runs-on: ubuntu-latest
+    environment: pro
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -11,12 +12,18 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: 'arn:aws:iam::574363388371:role/strava-cicd'
+          aws-region: eu-west-1
+
       - name: init
         working-directory: stack
         run: |
-          terraform init
+          terraform init -backend-config="tfvars/backend-pro.hcl"
 
       - name: plan
         working-directory: stack
         run: |
-          terraform plan
+          terraform plan -var-file="tfvars/pro.tfvars"
