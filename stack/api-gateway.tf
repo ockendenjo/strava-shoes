@@ -9,20 +9,20 @@ resource "aws_apigatewayv2_stage" "default" {
   auto_deploy = true
 }
 
-resource "aws_apigatewayv2_integration" "auth_integration" {
+resource "aws_apigatewayv2_integration" "auth" {
   api_id                 = aws_apigatewayv2_api.http_api.id
   integration_type       = "AWS_PROXY"
   integration_uri        = module.lambda_auth.invoke_arn
   payload_format_version = "2.0"
 }
 
-resource "aws_apigatewayv2_route" "auth_route" {
+resource "aws_apigatewayv2_route" "auth" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "GET /auth"
-  target    = "integrations/${aws_apigatewayv2_integration.auth_integration.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
 }
 
-resource "aws_lambda_permission" "api_gateway" {
+resource "aws_lambda_permission" "auth" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = module.lambda_auth.function_name
@@ -30,20 +30,20 @@ resource "aws_lambda_permission" "api_gateway" {
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
 }
 
-resource "aws_apigatewayv2_integration" "receive_event_integration" {
+resource "aws_apigatewayv2_integration" "receive_event" {
   api_id                 = aws_apigatewayv2_api.http_api.id
   integration_type       = "AWS_PROXY"
   integration_uri        = module.lambda_receive_event.invoke_arn
   payload_format_version = "2.0"
 }
 
-resource "aws_apigatewayv2_route" "receive_event_route" {
+resource "aws_apigatewayv2_route" "receive_event" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "POST /event"
-  target    = "integrations/${aws_apigatewayv2_integration.receive_event_integration.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.receive_event.id}"
 }
 
-resource "aws_lambda_permission" "api_gateway" {
+resource "aws_lambda_permission" "receive_event" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = module.lambda_receive_event.function_name
