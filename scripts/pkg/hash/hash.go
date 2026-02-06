@@ -18,11 +18,13 @@ func GetBase64FromSHA256Hex(hexStr string) string {
 }
 
 func GetBinarySHA256Hex(filePath string) (string, error) {
-	f, err := os.Open(filePath)
+	f, err := os.Open(filePath) // #nosec G304 -- Script needs to load file from variable
 	if err != nil {
 		return "", fmt.Errorf("failed to open file: %w", err)
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
 
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {

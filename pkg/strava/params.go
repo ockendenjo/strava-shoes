@@ -3,11 +3,12 @@ package strava
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/jsii-runtime-go"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -39,7 +40,7 @@ func (c *paramsClient) GetParams(ctx context.Context) (StravaParams, error) {
 	sp := StravaParams{}
 
 	for _, parameter := range res.Parameters {
-		key := strings.Replace(*parameter.Name, prefix, "", -1)
+		key := strings.ReplaceAll(*parameter.Name, prefix, "")
 		switch key {
 		case "clientId":
 			sp.ClientId = *parameter.Value
