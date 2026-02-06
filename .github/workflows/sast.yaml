@@ -1,0 +1,9 @@
+name: SAST
+on:
+  pull_request: {}
+  schedule:
+    - cron: "35 9 * * *"
+
+jobs:
+  sast:
+    uses: ockendenjo/actions/.github/workflows/sast.yaml@main
