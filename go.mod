@@ -13,6 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.67.8
 	github.com/aws/aws-xray-sdk-go/v2 v2.0.0
 	github.com/aws/jsii-runtime-go v1.126.0
+	github.com/google/uuid v1.6.0
 	github.com/ockendenjo/handler v1.0.5
 	github.com/stretchr/testify v1.11.1
 )
