@@ -51,7 +51,9 @@ func (c *Client) Authorize(ctx context.Context, code string) error {
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -111,7 +113,9 @@ func (c *Client) getAccessToken(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -162,7 +166,9 @@ func (c *Client) GetActivities(ctx context.Context, page int) ([]Activity, error
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {

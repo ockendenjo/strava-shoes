@@ -122,7 +122,7 @@ func putManifest(ctx context.Context, s3Client *s3.Client, manifest map[string]s
 	if err != nil {
 		return err
 	}
-	file, err := os.OpenFile("build/manifest.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	file, err := os.OpenFile("build/manifest.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
@@ -162,11 +162,13 @@ func doesFileExist(ctx context.Context, s3Client *s3.Client, key string, bucket 
 }
 
 func uploadFile(ctx context.Context, s3Client *s3.Client, filePath, key, bucket string) error {
-	file, err := os.Open(filePath)
+	file, err := os.Open(filePath) // #nosec G304 -- Script needs to load file from variable
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
 
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: &bucket,
