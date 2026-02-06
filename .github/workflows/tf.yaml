@@ -26,34 +26,15 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           mask-aws-account-id: true
 
-      - name: setup backend config
+      - name: get terraform config
         working-directory: stack
-        shell: bash
         run: |
-          cat > backend.hcl << 'EOF'
-          bucket         = "${{ secrets.TF_STATE_BUCKET }}"
-          key            = "${{ secrets.TF_STATE_OBJECT_KEY }}"
-          region         = "${{ secrets.AWS_REGION }}"
-          EOF
+          aws s3 sync s3://${{ secrets.TF_STATE_BUCKET }}/tfvars .
 
       - name: init
         working-directory: stack
         run: |
           terraform init -backend-config=backend.hcl
-
-      - name: setup variables
-        working-directory: stack
-        shell: bash
-        run: |
-          cat > pro.auto.tfvars << 'EOF'
-          aws_account_id           = "${{ secrets.AWS_ACCOUNT_ID }}"
-          aws_region               = "${{ secrets.AWS_REGION }}"
-          client_id                = "${{ secrets.STRAVA_CLIENT_ID }}"
-          env                      = "pro"
-          gear_ids                 = "[\"g9558316\", \"\"]"
-          lambda_binaries_bucket   = "${{ secrets.BINARY_BUCKET }}"
-          permissions_boundary_arn = "${{ secrets.PERMISSIONS_BOUNDARY_ARN }}"
-          EOF
 
       - name: plan
         if: ${{ !inputs.apply }}
