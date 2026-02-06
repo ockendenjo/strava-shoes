@@ -16,6 +16,7 @@ const (
 	keyAccessToken  = "accessToken"
 	keyRefreshToken = "refreshToken"
 	keyExpiryTime   = "expiryTime"
+	keyVerifyToken  = "verifyToken"
 )
 
 func newParamsClient(client *ssm.Client) *paramsClient {
@@ -83,6 +84,10 @@ func (c *paramsClient) SetAccessToken(ctx context.Context, value string) error {
 
 func (c *paramsClient) SetExpiryTime(ctx context.Context, expiryTime int64) error {
 	return c.setParam(ctx, keyExpiryTime, fmt.Sprintf("%d", expiryTime), types.ParameterTypeString)
+}
+
+func (c *paramsClient) SetVerifyToken(ctx context.Context, value string) error {
+	return c.setParam(ctx, keyVerifyToken, value, types.ParameterTypeString)
 }
 
 func (c *paramsClient) setParam(ctx context.Context, key, value string, paramType types.ParameterType) error {
