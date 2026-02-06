@@ -34,16 +34,16 @@ jobs:
       - name: init
         working-directory: stack
         run: |
-          terraform init -backend-config=backend.hcl
+          terraform init -backend-config=tfvars/backend-pro.hcl
 
       - name: plan
         if: ${{ !inputs.apply }}
         working-directory: stack
         run: |
-          terraform plan
+          terraform plan -var-file="tfvars/pro.tfvars"
 
       - name: apply
         if: ${{ inputs.apply }}
         working-directory: stack
         run: |
-          terraform apply -auto-approve
+          terraform apply -auto-approve -var-file="tfvars/pro.tfvars"
