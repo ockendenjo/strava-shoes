@@ -29,7 +29,8 @@ jobs:
       - name: get terraform config
         working-directory: stack
         run: |
-          aws s3 sync s3://${{ secrets.TF_STATE_BUCKET }}/tfvars .
+          mkdir -p tfvars
+          aws s3 sync s3://${{ secrets.TF_STATE_BUCKET }}/tfvars/ tfvars/
 
       - name: init
         working-directory: stack
