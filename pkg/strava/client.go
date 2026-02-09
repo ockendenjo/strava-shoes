@@ -184,7 +184,7 @@ func (c *Client) Subscribe(ctx context.Context, callbackURL, verifyToken string)
 		_ = Body.Close()
 	}(res.Body)
 
-	if res.StatusCode == http.StatusOK {
+	if res.StatusCode == http.StatusCreated {
 		return nil
 	}
 	b, err := io.ReadAll(res.Body)
