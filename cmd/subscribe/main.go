@@ -35,7 +35,7 @@ func main() {
 }
 
 type lambdaHandler struct {
-	stravaClient *strava.Client
+	stravaClient strava.Client
 	callbackURL  string
 }
 

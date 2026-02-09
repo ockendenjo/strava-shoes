@@ -28,7 +28,7 @@ func main() {
 	})
 }
 
-func getHandler(client *strava.Client) apiHandler {
+func getHandler(client strava.Client) apiHandler {
 	return func(ctx *handler.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 		logger := ctx.GetLogger()
 

@@ -10,10 +10,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
 	"github.com/ockendenjo/strava"
 	"github.com/ockendenjo/strava-shoes/pkg/bagging"
+	"github.com/ockendenjo/strava/sports"
 )
 
 func buildCheckActivityFunc(gearIds []string, client bagging.Client, ebClient *eventbridge.Client) checkActivityFn {
-	sportTypes := []string{"Run", "Hike", "Walk", "Ride"}
+	sportTypes := []sports.Sport{sports.Run, sports.Hike, sports.Walk, sports.Ride}
 	isGearOk := getCheckFn(sportTypes, gearIds)
 
 	return func(ctx context.Context, activity *strava.Activity, ch chan checkActivityResult) {
@@ -72,10 +73,10 @@ type checkActivityResult struct {
 
 type checkActivityFn func(ctx context.Context, activity *strava.Activity, ch chan checkActivityResult)
 
-func getCheckFn(sportTypes []string, gearIds []string) func(a *strava.Activity) bool {
+func getCheckFn(sportTypes []sports.Sport, gearIds []string) func(a *strava.Activity) bool {
 
 	return func(a *strava.Activity) bool {
-		if !slices.Contains(sportTypes, a.SportType) {
+		if !slices.Contains(sportTypes, sports.Sport(a.SportType)) {
 			//Sport type is ignored
 			return true
 		}
