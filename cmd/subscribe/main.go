@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-xray-sdk-go/v2/xray"
 	"github.com/google/uuid"
 	"github.com/ockendenjo/handler"
-	"github.com/ockendenjo/strava/pkg/strava"
+	"github.com/ockendenjo/strava"
 )
 
 func main() {

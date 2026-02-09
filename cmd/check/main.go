@@ -15,8 +15,8 @@ import (
 	"github.com/aws/aws-xray-sdk-go/v2/xray"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/ockendenjo/handler"
-	"github.com/ockendenjo/strava/pkg/bagging"
-	"github.com/ockendenjo/strava/pkg/strava"
+	"github.com/ockendenjo/strava"
+	"github.com/ockendenjo/strava-shoes/pkg/bagging"
 )
 
 const maxParallel = 10

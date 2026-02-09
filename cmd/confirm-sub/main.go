@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/ockendenjo/handler"
-	"github.com/ockendenjo/strava/pkg/strava"
+	"github.com/ockendenjo/strava/services/ps"
 )
 
 type H = handler.Handler[events.APIGatewayProxyRequest, events.APIGatewayProxyResponse]
@@ -17,14 +17,14 @@ func main() {
 	handler.BuildAndStart(func(awsConfig aws.Config) H {
 
 		ssmClient := ssm.NewFromConfig(awsConfig)
-		paramsClient := strava.NewParamsClient(ssmClient)
+		paramsClient := ps.NewParamsClient(ssmClient)
 		h := &lambdaHandler{paramsClient: paramsClient}
 		return h.handle
 	})
 }
 
 type lambdaHandler struct {
-	paramsClient strava.ParamsClient
+	paramsClient ps.ParamsClient
 }
 
 func (h *lambdaHandler) handle(ctx *handler.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

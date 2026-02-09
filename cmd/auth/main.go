@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-xray-sdk-go/v2/xray"
 	"github.com/ockendenjo/handler"
-	"github.com/ockendenjo/strava/pkg/strava"
+	"github.com/ockendenjo/strava"
 )
 
 type apiHandler = handler.Handler[events.APIGatewayV2HTTPRequest, events.APIGatewayV2HTTPResponse]

@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/ockendenjo/strava/scripts/pkg/hash"
+	"github.com/ockendenjo/strava-shoes/scripts/pkg/hash"
 )
 
 var buildPath = filepath.Join("build")

@@ -46,6 +46,7 @@ requires: upload-cmd, just-apply
 ### build-cmd
 
 requires: clean
+environment: GONOPROXY=github.com/ockendenjo/*
 
 ```shell
 go run ./scripts/build-cmd --zip
