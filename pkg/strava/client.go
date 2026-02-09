@@ -14,7 +14,7 @@ import (
 )
 
 func NewClient(ssmClient *ssm.Client, httpClient *http.Client) *Client {
-	psClient := newParamsClient(ssmClient)
+	psClient := NewParamsClient(ssmClient).(*paramsClient)
 	return &Client{psClient: psClient, httpClient: httpClient}
 }
 

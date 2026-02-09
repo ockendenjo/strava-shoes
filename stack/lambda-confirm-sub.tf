@@ -11,6 +11,12 @@ module "lambda_confirm_sub" {
   environment = {}
 }
 
+module "iam_ssm_config_sub" {
+  source  = "github.com/ockendenjo/tfmods//iam-ssm"
+  role_id = module.lambda_confirm_sub.role_id
+  ssm_arn = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/strava*"
+}
+
 resource "aws_apigatewayv2_integration" "confirm_sub" {
   api_id                 = aws_apigatewayv2_api.http_api.id
   integration_type       = "AWS_PROXY"

@@ -6,7 +6,9 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/ockendenjo/handler"
+	"github.com/ockendenjo/strava/pkg/strava"
 )
 
 type H = handler.Handler[events.APIGatewayProxyRequest, events.APIGatewayProxyResponse]
@@ -14,12 +16,15 @@ type H = handler.Handler[events.APIGatewayProxyRequest, events.APIGatewayProxyRe
 func main() {
 	handler.BuildAndStart(func(awsConfig aws.Config) H {
 
-		h := &lambdaHandler{}
+		ssmClient := ssm.NewFromConfig(awsConfig)
+		paramsClient := strava.NewParamsClient(ssmClient)
+		h := &lambdaHandler{paramsClient: paramsClient}
 		return h.handle
 	})
 }
 
 type lambdaHandler struct {
+	paramsClient strava.ParamsClient
 }
 
 func (h *lambdaHandler) handle(ctx *handler.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -28,6 +33,23 @@ func (h *lambdaHandler) handle(ctx *handler.Context, event events.APIGatewayProx
 	challenge, found := event.QueryStringParameters["hub.challenge"]
 	if !found {
 		logger.Error("Challenge not found")
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest}, nil
+	}
+
+	verifyToken, found := event.QueryStringParameters["hub.verify_token"]
+	if !found {
+		logger.Error("VerifyToken not found")
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest}, nil
+	}
+
+	params, err := h.paramsClient.GetParams(ctx)
+	if err != nil {
+		logger.Error("Failed to get params")
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+	}
+
+	if params.VerifyToken != verifyToken {
+		logger.Error("Verify token does not match")
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest}, nil
 	}
 
