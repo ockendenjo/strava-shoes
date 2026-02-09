@@ -46,7 +46,7 @@ func main() {
 	})
 }
 
-func getHandler(stravaClient *strava.Client, snsClient *sns.Client, checkActivity checkActivityFn, topicArn string) H {
+func getHandler(stravaClient strava.Client, snsClient *sns.Client, checkActivity checkActivityFn, topicArn string) H {
 	return func(ctx *handler.Context, event CheckActivitiesEvent) (any, error) {
 		logger := ctx.GetLogger()
 
