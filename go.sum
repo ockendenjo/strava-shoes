@@ -89,6 +89,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/ockendenjo/handler v1.0.5 h1:HwTPz4wwaa6WhD+PiCsD3UFGDy4FeGVRf69hq07UVYE=
 github.com/ockendenjo/handler v1.0.5/go.mod h1:hPJ3pPTpPEowjj4bKZxmM6YnOGJ/GYI5yZuUx0KvCLY=
+github.com/ockendenjo/strava v0.0.0-20260209150104-4763729a3b29 h1:TnBMq1CnNHAytjDjlz6Y/Je7JHOpHA9XO2/bArOqxtk=
+github.com/ockendenjo/strava v0.0.0-20260209150104-4763729a3b29/go.mod h1:+ofynK5RnFDrEP4A3O1b1AnugS+DhCKho8OI5183Ppc=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
-	"github.com/ockendenjo/strava/pkg/bagging"
-	"github.com/ockendenjo/strava/pkg/strava"
+	"github.com/ockendenjo/strava"
+	"github.com/ockendenjo/strava-shoes/pkg/bagging"
 )
 
 func buildCheckActivityFunc(gearIds []string, client bagging.Client, ebClient *eventbridge.Client) checkActivityFn {
