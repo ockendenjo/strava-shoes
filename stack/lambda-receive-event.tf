@@ -10,3 +10,11 @@ module "lambda_receive_event" {
 
   environment = {}
 }
+
+module "iam_eventbridge_lambda_receive_event" {
+  source  = "github.com/ockendenjo/tfmods//iam-eventbridge"
+  role_id = module.lambda_receive_event.role_id
+  bus_arns = [
+    "arn:aws:events:${var.aws_region}:${var.aws_account_id}:event-bus/default"
+  ]
+}
