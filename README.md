@@ -106,6 +106,15 @@ source_profile = default
 EOF
 ```
 
+### pull-vars
+
+directory: stack
+environment: AWS_PROFILE=strava
+
+```shell
+aws s3 sync s3://strava-pro-state-20260202095142757000000002/tfvars/ tfvars/
+```
+
 ### upload-cmd
 
 requires: build-cmd
