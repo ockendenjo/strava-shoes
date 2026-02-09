@@ -19,7 +19,11 @@ const (
 	keyVerifyToken  = "verifyToken"
 )
 
-func newParamsClient(client *ssm.Client) *paramsClient {
+type ParamsClient interface {
+	GetParams(ctx context.Context) (StravaParams, error)
+}
+
+func NewParamsClient(client *ssm.Client) ParamsClient {
 	return &paramsClient{ssmClient: client}
 }
 
@@ -57,6 +61,8 @@ func (c *paramsClient) GetParams(ctx context.Context) (StravaParams, error) {
 				return StravaParams{}, err
 			}
 			sp.ExpiryTime = parsed
+		case keyVerifyToken:
+			sp.VerifyToken = *parameter.Value
 		}
 	}
 	return sp, nil
@@ -106,4 +112,5 @@ type StravaParams struct {
 	AccessToken  string
 	RefreshToken string
 	ExpiryTime   int64
+	VerifyToken  string
 }
