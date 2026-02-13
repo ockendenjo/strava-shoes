@@ -29,18 +29,19 @@ func (h *lambdaHandler) handle(ctx *handler.Context, event events.APIGatewayProx
 	logger := ctx.GetLogger()
 	logger.AddParam("event", event.Body).Info("Received event")
 
+	entry := types.PutEventsRequestEntry{
+		Detail:     aws.String(event.Body),
+		DetailType: aws.String("StravaEvent"),
+		Source:     aws.String("io.ockenden.strava"),
+	}
 	_, err := h.ebClient.PutEvents(ctx, &eventbridge.PutEventsInput{
-		Entries: []types.PutEventsRequestEntry{{
-			Detail:     aws.String(event.Body),
-			DetailType: aws.String("StravaEvent"),
-			Source:     aws.String("io.ockenden.strava"),
-		}},
+		Entries: []types.PutEventsRequestEntry{entry},
 	})
 
 	if err != nil {
 		logger.Error("Failed to send event to bus")
 	} else {
-		logger.Info("Sent event to bus")
+		logger.AddParam("published", entry).Info("Sent event to bus")
 	}
 
 	return events.APIGatewayProxyResponse{StatusCode: http.StatusOK, Body: ""}, nil
