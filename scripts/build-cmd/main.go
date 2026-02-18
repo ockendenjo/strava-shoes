@@ -147,10 +147,10 @@ func buildLambda(mainFile string, c chan chanResult, isZipMode bool) {
 		return
 	}
 
-	sb.WriteString(fmt.Sprintf("Build %s\n", inputDir))
+	_, _ = fmt.Fprintf(&sb, "Build %s\n", inputDir)
 	size := getSize(outPath)
 	if size > 0 {
-		sb.WriteString(fmt.Sprintf("OK    %s %.1fMB\n", outPath, size))
+		_, _ = fmt.Fprintf(&sb, "OK    %s %.1fMB\n", outPath, size)
 	}
 
 	var binHex string
@@ -169,7 +169,7 @@ func buildLambda(mainFile string, c chan chanResult, isZipMode bool) {
 
 		size = getSize(outPath + ".zip")
 		if size > 0 {
-			sb.WriteString(fmt.Sprintf("OK    %s %.1fMB\n", outPath+".zip", size))
+			_, _ = fmt.Fprintf(&sb, "OK    %s %.1fMB\n", outPath+".zip", size)
 		}
 
 		binHex, err = getBinarySha256(outPath + ".zip")
