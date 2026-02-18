@@ -27,10 +27,8 @@ jobs:
         env:
           GONOPROXY: "github.com/ockendenjo/*"
 
-      - name: Build commands
-        shell: bash
-        run: |
-          go run ./scripts/build-cmd --zip
+      - name: Build
+        uses: ockendenjo/build-cmd@main
         env:
           GONOPROXY: "github.com/ockendenjo/*"
 
