@@ -29,8 +29,6 @@ jobs:
 
       - name: Build
         uses: ockendenjo/build-cmd@main
-        with:
-          go-version-file: "go.mod"
         env:
           GONOPROXY: "github.com/ockendenjo/*"
 
