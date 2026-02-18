@@ -15,24 +15,31 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Install Go
-        uses: actions/setup-go@v5
+      - name: Build
+        uses: ockendenjo/build-cmd@main
         with:
           go-version-file: "go.mod"
-
-      - name: Download Go packages
-        shell: bash
-        run: |
-          go get ./...
         env:
           GONOPROXY: "github.com/ockendenjo/*"
 
-      - name: Build commands
-        shell: bash
-        run: |
-          go run ./scripts/build-cmd --zip
-        env:
-          GONOPROXY: "github.com/ockendenjo/*"
+#      - name: Install Go
+#        uses: actions/setup-go@v5
+#        with:
+#          go-version-file: "go.mod"
+#
+#      - name: Download Go packages
+#        shell: bash
+#        run: |
+#          go get ./...
+#        env:
+#          GONOPROXY: "github.com/ockendenjo/*"
+#
+#      - name: Build commands
+#        shell: bash
+#        run: |
+#          go run ./scripts/build-cmd --zip
+#        env:
+#          GONOPROXY: "github.com/ockendenjo/*"
 
       - name: configure aws credentials
         if: ${{ inputs.upload }}
