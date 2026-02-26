@@ -106,10 +106,9 @@ func putManifest(ctx context.Context, s3Client *s3.Client, manifest map[string]s
 		return err
 	}
 
-	manifestKey := "lambda_manifests/default.json"
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      &bucket,
-		Key:         &manifestKey,
+		Key:         new("lambda_manifests/default.json"),
 		Body:        bytes.NewReader(b),
 		ContentType: ptr("application/json"),
 	})
@@ -152,8 +151,7 @@ func doesFileExist(ctx context.Context, s3Client *s3.Client, key string, bucket 
 		Key:    &key,
 	})
 	if err != nil {
-		var nf *s3Types.NotFound
-		if errors.As(err, &nf) {
+		if _, ok := errors.AsType[*s3Types.NotFound](err); ok {
 			return false, nil
 		}
 		return false, err
