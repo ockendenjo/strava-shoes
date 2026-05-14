@@ -1,0 +1,32 @@
+name: zizmor
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  zizmor:
+    name: Run zizmor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read         # Only needed for private repos. Needed to clone the repo.
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Download zizmor
+        shell: bash
+        run: |
+          wget -nv https://github.com/zizmorcore/zizmor/releases/download/v1.24.1/zizmor-x86_64-unknown-linux-gnu.tar.gz
+          echo "a8000f3c683319a523d3b20df0e75457ba591f049cfcbfa98966631b56733c03  zizmor-x86_64-unknown-linux-gnu.tar.gz" | sha256sum --check
+          tar -xvzf zizmor-x86_64-unknown-linux-gnu.tar.gz
+
+      - name: Run zizmor
+        shell: bash
+        run: |
+          ./zizmor ./.github/
