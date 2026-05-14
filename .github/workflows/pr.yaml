@@ -3,14 +3,30 @@ name: pr
 on:
   pull_request: {}
 
+permissions: {}
+
 jobs:
   test:
+    permissions:
+      contents: read
     uses: ./.github/workflows/test.yaml
 
   build:
-    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      BINARY_BUCKET: ${{ secrets.BINARY_BUCKET }}
     uses: ./.github/workflows/build.yaml
 
   plan:
-    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
     uses: ./.github/workflows/tf.yaml

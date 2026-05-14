@@ -4,6 +4,13 @@ on:
       apply:
         type: boolean
         default: false
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+      AWS_REGION:
+        required: true
+      TF_STATE_BUCKET:
+        required: true
 
 jobs:
   tf:
@@ -12,9 +19,12 @@ jobs:
     timeout-minutes: 10
     permissions:
       id-token: write
+      contents: read
     steps:
       - name: Checkout source code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
