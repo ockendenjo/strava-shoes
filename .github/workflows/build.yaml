@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: pro
     permissions:
-      id-token: write
+      id-token: write # AWS OIDC
       contents: read
     steps:
       - name: Checkout source code
