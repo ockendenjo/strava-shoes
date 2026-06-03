@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	dynamoTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 const pk = "ID"
@@ -30,8 +30,8 @@ type baggingClient struct {
 func (b baggingClient) HasId(ctx context.Context, id int64) (bool, error) {
 	res, err := b.dbClient.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(b.tableName),
-		Key: map[string]types.AttributeValue{
-			pk: &types.AttributeValueMemberS{
+		Key: map[string]dynamoTypes.AttributeValue{
+			pk: &dynamoTypes.AttributeValueMemberS{
 				Value: fmt.Sprint(id),
 			},
 		},
@@ -48,11 +48,11 @@ func (b baggingClient) PutId(ctx context.Context, id int64) error {
 
 	_, err := b.dbClient.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: aws.String(b.tableName),
-		Item: map[string]types.AttributeValue{
-			pk: &types.AttributeValueMemberS{
+		Item: map[string]dynamoTypes.AttributeValue{
+			pk: &dynamoTypes.AttributeValueMemberS{
 				Value: fmt.Sprint(id),
 			},
-			expiry: &types.AttributeValueMemberN{
+			expiry: &dynamoTypes.AttributeValueMemberN{
 				Value: fmt.Sprint(expiryTime),
 			},
 		},

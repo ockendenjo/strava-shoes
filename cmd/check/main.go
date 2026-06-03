@@ -50,10 +50,7 @@ func getHandler(stravaClient strava.Client, snsClient *sns.Client, checkActivity
 	return func(ctx *handler.Context, event CheckActivitiesEvent) (any, error) {
 		logger := ctx.GetLogger()
 
-		page := 1
-		if event.Page > 1 {
-			page = event.Page
-		}
+		page := max(event.Page, 1)
 
 		//Load activities
 		activities, err := stravaClient.GetActivities(ctx, page)
