@@ -133,11 +133,6 @@ func putManifest(ctx context.Context, s3Client *s3.Client, manifest map[string]s
 	return nil
 }
 
-//go:fix inline
-func ptr[T any](v T) *T {
-	return new(v)
-}
-
 func getBucket() string {
 	bucket := os.Getenv("BINARY_BUCKET")
 	if bucket != "" {
