@@ -110,7 +110,7 @@ func putManifest(ctx context.Context, s3Client *s3.Client, manifest map[string]s
 		Bucket:      &bucket,
 		Key:         new("lambda_manifests/default.json"),
 		Body:        bytes.NewReader(b),
-		ContentType: ptr("application/json"),
+		ContentType: new("application/json"),
 	})
 	if err != nil {
 		return err
@@ -133,8 +133,9 @@ func putManifest(ctx context.Context, s3Client *s3.Client, manifest map[string]s
 	return nil
 }
 
+//go:fix inline
 func ptr[T any](v T) *T {
-	return &v
+	return new(v)
 }
 
 func getBucket() string {
