@@ -15,7 +15,7 @@ jobs:
   test:
     permissions:
       contents: read
-    uses: ./.github/workflows/test.yaml
+    uses: $/.github/workflows/test.yaml
 
   build:
     permissions:
@@ -25,7 +25,7 @@ jobs:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       BINARY_BUCKET: ${{ secrets.BINARY_BUCKET }}
-    uses: ./.github/workflows/build.yaml
+    uses: $/.github/workflows/build.yaml
     with:
       upload: true
 
@@ -38,6 +38,6 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
     needs: [build, test]
-    uses: ./.github/workflows/tf.yaml
+    uses: $/.github/workflows/tf.yaml
     with:
       apply: true
