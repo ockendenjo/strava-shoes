@@ -1,3 +1,5 @@
+name: tf
+
 on:
   workflow_call:
     inputs:
@@ -12,13 +14,16 @@ on:
       TF_STATE_BUCKET:
         required: true
 
+permissions: {}
+
 jobs:
   tf:
+    name: tf
     runs-on: ubuntu-latest
     environment: pro
     timeout-minutes: 10
     permissions:
-      id-token: write
+      id-token: write # AWS OIDC
       contents: read
     steps:
       - name: Checkout source code
@@ -40,7 +45,9 @@ jobs:
         working-directory: stack
         run: |
           mkdir -p tfvars
-          aws s3 sync s3://${{ secrets.TF_STATE_BUCKET }}/tfvars/ tfvars/
+          aws s3 sync "s3://${TF_STATE_BUCKET}/tfvars/" tfvars/
+        env:
+          TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
 
       - name: init
         working-directory: stack

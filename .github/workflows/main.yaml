@@ -20,7 +20,7 @@ jobs:
   build:
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -32,7 +32,7 @@ jobs:
   deploy:
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       AWS_REGION: ${{ secrets.AWS_REGION }}

@@ -7,6 +7,12 @@ on:
     branches:
       - main
 
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   zizmor:
     name: Run zizmor
@@ -29,4 +35,6 @@ jobs:
       - name: Run zizmor
         shell: bash
         run: |
-          ./zizmor ./.github/
+          ./zizmor --pedantic ./.github/
+        env:
+          GH_TOKEN: ${{ github.token }}

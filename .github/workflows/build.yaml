@@ -1,3 +1,5 @@
+name: build
+
 on:
   workflow_call:
     inputs:
@@ -12,8 +14,11 @@ on:
       BINARY_BUCKET:
         required: false
 
+permissions: {}
+
 jobs:
   build:
+    name: build
     runs-on: ubuntu-latest
     environment: pro
     permissions:

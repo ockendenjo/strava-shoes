@@ -1,9 +1,16 @@
+name: test
+
 on:
   workflow_call: {}
 
+permissions: {}
+
 jobs:
   test:
+    name: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 10
     steps:
       - name: Checkout source code
