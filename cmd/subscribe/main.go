@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"uuid"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-xray-sdk-go/v2/xray"
-	"github.com/google/uuid"
 	"github.com/ockendenjo/handler"
 	"github.com/ockendenjo/strava"
 )
@@ -41,7 +41,7 @@ type lambdaHandler struct {
 
 func (h *lambdaHandler) handle(ctx *handler.Context, event any) (any, error) {
 	logger := ctx.GetLogger()
-	verifyToken := strings.ReplaceAll(uuid.NewString(), "-", "")
+	verifyToken := strings.ReplaceAll(uuid.NewV4().String(), "-", "")
 
 	err := h.stravaClient.Subscribe(ctx, h.callbackURL, verifyToken)
 	if err != nil {
