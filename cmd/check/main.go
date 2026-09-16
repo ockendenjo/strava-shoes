@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-xray-sdk-go/v2/xray"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/ockendenjo/handler"
 	"github.com/ockendenjo/strava"
 	"github.com/ockendenjo/strava-shoes/pkg/bagging"
@@ -100,9 +99,9 @@ func getHandler(stravaClient strava.Client, snsClient *sns.Client, checkActivity
 		fullMessage := strings.Join(messages, "\n")
 
 		_, err = snsClient.Publish(ctx, &sns.PublishInput{
-			TopicArn: jsii.String(topicArn),
-			Message:  jsii.String(fullMessage),
-			Subject:  jsii.String("Strava activities with missing gear"),
+			TopicArn: &topicArn,
+			Message:  &fullMessage,
+			Subject:  new("Strava activities with missing gear"),
 		})
 		return nil, err
 	}
