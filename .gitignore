@@ -2,3 +2,5 @@
 build
 .terraform
 tfvars/
+.golangci.json
+

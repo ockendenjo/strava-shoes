@@ -116,6 +116,14 @@ environment: AWS_PROFILE=strava
 aws s3 sync s3://strava-pro-state-20260202095142757000000002/tfvars/ tfvars/
 ```
 
+### sast
+
+```shell
+wget -O .golangci.json https://raw.githubusercontent.com/ockendenjo/actions/refs/heads/main/.golangci.json
+golangci-lint run
+govulncheck ./...
+```
+
 ### upload-cmd
 
 requires: build-cmd

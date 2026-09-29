@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"flag"
@@ -21,11 +22,12 @@ var colorCodeRed = "\033[91m"
 var colorCodeReset = "\033[0m"
 
 func main() {
+	ctx := context.Background()
 	var isZipMode bool
 	flag.BoolVar(&isZipMode, "zip", false, "zip")
 	flag.Parse()
 
-	cmd := exec.Command("find", "./cmd", "-type", "f", "-name", "main.go")
+	cmd := exec.CommandContext(ctx, "find", "./cmd", "-type", "f", "-name", "main.go")
 	stdout, err := cmd.Output()
 	if err != nil {
 		panic(err)
@@ -38,32 +40,42 @@ func main() {
 
 	mainFiles := strings.Split(string(stdout), "\n")
 
-	cmd = exec.Command("mkdir", "-p", "build")
+	cmd = exec.CommandContext(ctx, "mkdir", "-p", "build")
 	_, err = cmd.Output()
 	if err != nil {
 		panic(err)
 	}
 
-	hasError := false
-	errorList := []string{}
-
-	c := make(chan chanResult, len(mainFiles))
-	parallelCount := 0
-	remaining := 0
 	maxParallel := getParallisation()
 	fmt.Printf("Running build with parallisation: %d\n", maxParallel)
 
+	okBuilds, errorList := runBuilds(ctx, mainFiles, maxParallel, isZipMode)
+
+	if len(errorList) > 0 {
+		reportErrors(errorList)
+		os.Exit(1)
+	}
+	if isZipMode {
+		printHashes(okBuilds)
+	}
+}
+
+func runBuilds(ctx context.Context, mainFiles []string, maxParallel int, isZipMode bool) ([]chanResult, []string) {
+	c := make(chan chanResult, len(mainFiles))
+	parallelCount := 0
+	remaining := 0
+	errorList := []string{}
+	okBuilds := make([]chanResult, 0, len(mainFiles))
+
 	build := func(file string) {
-		go buildLambda(file, c, isZipMode)
+		go buildLambda(ctx, file, c, isZipMode)
 		parallelCount++
 		remaining++
 	}
-	okBuilds := make([]chanResult, 0, len(mainFiles))
 	readChan := func() {
 		chanRes := <-c
 		remaining--
 		if chanRes.err != nil {
-			hasError = true
 			errorList = append(errorList, chanRes.lambdaName)
 		} else {
 			okBuilds = append(okBuilds, chanRes)
@@ -74,9 +86,7 @@ func main() {
 		if len(file) < 1 {
 			continue
 		}
-
 		build(file)
-
 		if i == 0 || parallelCount > maxParallel {
 			readChan()
 		}
@@ -86,20 +96,18 @@ func main() {
 		readChan()
 	}
 
-	if hasError {
-		l := log.New(os.Stderr, "", 0)
-		l.Print(colorCodeRed)
-		l.Printf("Lambda binary compilation failed for these main.go files:\n")
-		for _, s := range errorList {
-			l.Printf("   %s/main.go\n", s)
-		}
-		l.Println("See previous logging for error details")
-		l.Print(colorCodeReset)
-		os.Exit(1)
+	return okBuilds, errorList
+}
+
+func reportErrors(errorList []string) {
+	l := log.New(os.Stderr, "", 0)
+	l.Print(colorCodeRed)
+	l.Printf("Lambda binary compilation failed for these main.go files:\n")
+	for _, s := range errorList {
+		l.Printf("   %s/main.go\n", s)
 	}
-	if isZipMode {
-		printHashes(okBuilds)
-	}
+	l.Println("See previous logging for error details")
+	l.Print(colorCodeReset)
 }
 
 func printHashes(okBuilds []chanResult) {
@@ -124,13 +132,13 @@ func getParallisation() int {
 	return cpus / 2
 }
 
-func buildLambda(mainFile string, c chan chanResult, isZipMode bool) {
+func buildLambda(ctx context.Context, mainFile string, c chan chanResult, isZipMode bool) {
 	inputDir := getInputDirectory(mainFile)
 	outPath := getOutputPath(mainFile)
 
 	var sb strings.Builder
 
-	cmd := exec.Command("go", "build", "-o", outPath, "-trimpath", "-buildvcs=false", "-ldflags=-w -s", inputDir) // #nosec G204 -- Subprocess needs to be launched with variable
+	cmd := exec.CommandContext(ctx, "go", "build", "-o", outPath, "-trimpath", "-buildvcs=false", "-ldflags=-w -s", inputDir) // #nosec G204 -- Subprocess needs to be launched with variable
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "GOOS=linux")
 	cmd.Env = append(cmd.Env, "GOARCH=arm64")
