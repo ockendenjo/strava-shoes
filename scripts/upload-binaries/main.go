@@ -47,44 +47,9 @@ func main() {
 	exitWithError := false
 
 	for _, dir := range buildDirs {
-		zipPath := filepath.Join(buildPath, dir, "bootstrap.zip")
-		_, err = os.Stat(zipPath)
-		if err != nil {
-			continue
-		}
-
-		hexStr, err := hash.GetBinarySHA256Hex(zipPath)
-		if err != nil {
-			panic(err)
-		}
-
-		key := fmt.Sprintf("lambda_binaries/%s.zip", hexStr)
-		exists, err := doesFileExist(ctx, s3Client, key, bucket)
-		if err != nil {
-			logger.Println(err.Error())
+		if processDir(ctx, s3Client, dir, bucket, manifestFile, &wg, sem, errChan, logger) {
 			exitWithError = true
-			continue
 		}
-
-		manifestFile[dir] = key
-		if exists {
-			fmt.Printf("Binary for %s already exists in S3\n", dir)
-			continue
-		}
-		fmt.Printf("Binary for %s does not exist in S3, uploading...\n", dir)
-
-		wg.Go(func() {
-			sem <- struct{}{} // Acquire a token
-			defer func() { <-sem }()
-
-			err = uploadFile(ctx, s3Client, zipPath, key, bucket)
-			if err != nil {
-				logger.Printf("failed to upload lambda binary from %s: %s", dir, err.Error())
-				errChan <- fmt.Errorf("failed to upload lambda binary from %s", dir)
-				return
-			}
-			fmt.Printf("Binary for %s uploaded successfully\n", dir)
-		})
 	}
 
 	wg.Wait()
@@ -97,7 +62,53 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Print("Manifest uploaded successfully\n")
+	fmt.Printf("Manifest (%s) uploaded successfully\n", getManifestFile())
+}
+
+func processDir(ctx context.Context, s3Client *s3.Client, dir, bucket string, manifest map[string]string, wg *sync.WaitGroup, sem chan struct{}, errChan chan error, logger *log.Logger) bool {
+	zipPath := filepath.Join(buildPath, dir, "bootstrap.zip")
+	if _, err := os.Stat(zipPath); err != nil {
+		return false
+	}
+
+	hexStr, err := hash.GetBinarySHA256Hex(zipPath)
+	if err != nil {
+		panic(err)
+	}
+
+	key := fmt.Sprintf("lambda_binaries/%s.zip", hexStr)
+	exists, err := doesFileExist(ctx, s3Client, key, bucket)
+	if err != nil {
+		logger.Println(err.Error())
+		return true
+	}
+
+	manifest[dir] = key
+	if exists {
+		fmt.Printf("Binary for %s already exists in S3\n", dir)
+		return false
+	}
+	fmt.Printf("Binary for %s does not exist in S3, uploading...\n", dir)
+
+	wg.Go(func() {
+		sem <- struct{}{}
+		defer func() { <-sem }()
+		if err := uploadFile(ctx, s3Client, zipPath, key, bucket); err != nil {
+			logger.Printf("failed to upload lambda binary from %s: %s", dir, err.Error())
+			errChan <- fmt.Errorf("failed to upload lambda binary from %s", dir)
+			return
+		}
+		fmt.Printf("Binary for %s uploaded successfully\n", dir)
+	})
+	return false
+}
+
+func getManifestFile() string {
+	manifestFile := os.Getenv("MANIFEST_FILE")
+	if manifestFile == "" {
+		return "default.json"
+	}
+	return manifestFile
 }
 
 func putManifest(ctx context.Context, s3Client *s3.Client, manifest map[string]string, bucket string) error {
@@ -105,10 +116,11 @@ func putManifest(ctx context.Context, s3Client *s3.Client, manifest map[string]s
 	if err != nil {
 		return err
 	}
+	manifestFileName := getManifestFile()
 
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      &bucket,
-		Key:         new("lambda_manifests/default.json"),
+		Key:         new(fmt.Sprintf("lambda_manifests/%s", manifestFileName)),
 		Body:        bytes.NewReader(b),
 		ContentType: new("application/json"),
 	})
