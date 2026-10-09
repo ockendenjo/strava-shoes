@@ -129,6 +129,7 @@ govulncheck ./...
 requires: build-cmd
 environment: AWS_PROFILE=strava
 environment: BINARY_BUCKET=strava-lambda-binaries20260202095142751100000001
+environment: MANIFEST_FILE=shoes.json
 
 ```shell
 go run ./scripts/upload-binaries
