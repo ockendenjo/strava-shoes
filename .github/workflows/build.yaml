@@ -64,3 +64,4 @@ jobs:
           go run ./scripts/upload-binaries
         env:
           BINARY_BUCKET: ${{ secrets.BINARY_BUCKET }}
+          MANIFEST_FILE: shoes.json

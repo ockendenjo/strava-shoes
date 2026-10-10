@@ -4,7 +4,7 @@ data "aws_s3_bucket" "lambda_binaries" {
 
 data "aws_s3_object" "manifest_file" {
   bucket = data.aws_s3_bucket.lambda_binaries.id
-  key    = "lambda_manifests/default.json"
+  key    = "lambda_manifests/shoes.json"
 }
 
 locals {
