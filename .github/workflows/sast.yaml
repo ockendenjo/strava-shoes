@@ -10,4 +10,4 @@ jobs:
   sast:
     permissions:
       contents: read
-    uses: ockendenjo/actions/.github/workflows/sast.yaml@1927116938e4146cc2fb47f52b2126c799c27ef9 # zizmor: ignore[stale-action-refs,ref-version-mismatch]
+    uses: ockendenjo/actions/.github/workflows/sast.yaml@a2df8f128b00f2eaa76e59ea726f38ad79eff151 # zizmor: ignore[stale-action-refs,ref-version-mismatch]
